@@ -1,0 +1,52 @@
+server:
+    port: ${PORT}
+    error:
+        include-message: always
+
+    ### SSL
+    # ssl:
+        # key-store-type: ${SSL_KEY_STORE_TYPE}
+        # key-store: ${SSL_KEY_STORE}
+        # key-store-password: ${SSL_KEY_STORE_PASSWORD}
+        # key-alias: ${SSL_KEY_ALIAS}
+        # enabled: ${SSL_ENABLED}
+
+spring:
+    application:
+        name: ${API_NAME}
+    autoconfigure:
+        # disable auto generated password
+        exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+    config:
+        # include .env file
+        # TODO: how to differentiate?
+        import: optional:file:.env.local[.properties]
+    output:
+        # colored terminal
+        ansi:
+            enabled: ALWAYS
+
+    ### DB
+    datasource:
+        url: jdbc:mysql://localhost:${DB_PORT}/${DB_NAME}
+        # url: jdbc:h2:mem:${DB_NAME}.db
+        username: ${SPRING_DATASOURCE_USERNAME}
+        password: ${SPRING_DATASOURCE_PASSWORD}
+    jpa:
+        database-platform: org.hibernate.dialect.MySQLDialect
+        # database-platform: org.hibernate.dialect.H2Dialect
+        hibernate:
+            ddl-auto: update
+        defer-datasource-initialization: true
+        open-in-view: false
+        # don't validate during db actions
+        properties:
+            jakarta:
+                persistence:
+                    validation:
+                        mode: none 
+    h2:
+        console: 
+            enabled: true
+            path: /h2
+        
