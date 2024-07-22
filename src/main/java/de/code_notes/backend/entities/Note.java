@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.code_notes.backend.abstracts.AbstractEntity;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -40,10 +41,12 @@ public class Note extends AbstractEntity {
 
     @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Nullable
+    @Hidden
     private List<@Valid PlainTextBlock> plainTextBlocks;
 
     @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Nullable
+    @Hidden
     private List<@Valid CodeBlock> codeBlocks;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -54,5 +57,6 @@ public class Note extends AbstractEntity {
     @ManyToOne
     @JoinColumn(nullable = false)
     @NotNull(message = "'appUser' cannot be null")
+    @Valid
     private AppUser appUser;
 }

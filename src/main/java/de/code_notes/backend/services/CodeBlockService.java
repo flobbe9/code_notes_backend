@@ -21,6 +21,9 @@ public class CodeBlockService {
 
     public void deleteAll(List<CodeBlock> codeBlocks) {
 
+        if (codeBlocks == null)
+            return;
+
         this.codeBlockRepository.deleteAll(codeBlocks);
     }
 }

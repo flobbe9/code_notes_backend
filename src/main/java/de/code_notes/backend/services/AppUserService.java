@@ -7,12 +7,14 @@ import org.springframework.web.server.ResponseStatusException;
 import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.helpers.Utils;
 import de.code_notes.backend.repositories.AppUserRepository;
+import jakarta.annotation.Nullable;
+import lombok.extern.log4j.Log4j2;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,9 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @since 0.0.1
  */
 @Service
-// TODO: test all this
-    // validation
-    // methods
+@Log4j2
 public class AppUserService implements UserDetailsService {
 
     @Autowired
@@ -75,7 +75,7 @@ public class AppUserService implements UserDetailsService {
             throw new IllegalStateException("Failed to save new appUser. 'appUser' cannot be null");
 
         // validate
-        validateAppUserAndThrow(appUser);
+        validateAndThrow(appUser);
 
         // duplicate check
         if (exists(appUser))
@@ -89,16 +89,36 @@ public class AppUserService implements UserDetailsService {
     }
 
 
-    // TODO: assume encoded password
+    /**
+     * Update and save given {@code appUser} assuming that the password is encoded (wont be validated) and that the {@code appUser}'s id exists.
+     * 
+     * Changing the email is possible if the new one is unique.
+     * 
+     * @param appUser to update
+     * @return updated {@code appUser}
+     * @throws IllegalStateException if {@code appUser} is {@code null}
+     * @throws ResponseStatusException if {@code appUser} is invalid
+     */
     private AppUser update(AppUser appUser) {
 
-        // null
+        // case: falsy param
+        if (appUser == null)
+            throw new IllegalStateException("Failed to update appUser. 'appUser' cannot be null");
 
-        // exists
+        AppUser oldAppUser = getById(appUser.getId());
+
+        // case: no appUser with this id
+        if (oldAppUser == null)
+            throw new ResponseStatusException(NOT_ACCEPTABLE, "Failed to update appUser. No appUser with given id.");
+
+        // case: did change email 
+        if (!oldAppUser.getEmail().equals(appUser.getEmail())) 
+            // case: email already exists 
+            if (exists(appUser))
+                throw new ResponseStatusException(CONFLICT, "Failed to update appUser. AppUser with this email does already exist");
 
         // validate
-        // TODO: expect password failure
-        this.validator.validateObject(appUser);
+        validateAndThrowIgnorePassword(appUser);
 
         return this.appUserRepository.save(appUser);
     }
@@ -113,16 +133,32 @@ public class AppUserService implements UserDetailsService {
 
 
     /**
-     * @param appUser
-     * @return {@code true} if given {@code appUser} exists, {@code false} if not or is {@code null} (wont throw)
+     * Delete given {@code appUser} from db.
+     * 
+     * @param appUser 
      */
-    private boolean exists(AppUser appUser) {
+    public void delete(@Nullable Long id) {
+
+        AppUser appUser = getById(id);
+
+        // case: invalid id
+        if (appUser == null)
+            return;
+
+        this.appUserRepository.delete(appUser);
+    }
+
+
+    /**
+     * @param appUser
+     * @return {@code true} if an app user with given {@code appUser.email} exists, {@code false} if not or is {@code null} (wont throw)
+     */
+    public boolean exists(@Nullable AppUser appUser) {
 
         if (appUser == null)
             return false;
 
-            // TODO: does this find by email?
-        return this.appUserRepository.exists(Example.of(appUser));
+        return this.appUserRepository.existsByEmail(appUser.getEmail());
     }
 
 
@@ -139,7 +175,7 @@ public class AppUserService implements UserDetailsService {
         
         // case: password blank
         if (Utils.isBlank(appUser.getPassword()))
-            throw new ResponseStatusException(NOT_ACCEPTABLE, "Failed to encode password. 'appUser.password' cannot be blank");
+            throw new ResponseStatusException(BAD_REQUEST, "Failed to encode password. 'appUser.password' cannot be blank");
 
         appUser.setPassword(this.passwordEncoder.encode(appUser.getPassword()));
     }
@@ -153,14 +189,52 @@ public class AppUserService implements UserDetailsService {
      * @throws IllegalStateException if {@code appUser} is null
      * @throws ResponseStatusException if {@code appUser} is invalid
      */
-    private boolean validateAppUserAndThrow(AppUser appUser) throws IllegalStateException, ResponseStatusException {
+    private boolean validateAndThrow(AppUser appUser) throws IllegalStateException, ResponseStatusException {
 
         if (appUser == null)
             throw new IllegalStateException("Failed to validate appUser. 'appUser' cannot be null");
 
-        this.validator.validateObject(appUser)
-                      .failOnError((message) -> new ResponseStatusException(NOT_ACCEPTABLE, "Failed to save new appUser. 'appUser' is invalid"));
+        // validate all class annotations
+        validateAndThrowIgnorePassword(appUser);
+
+        // validate password
+        if (!appUser.getPassword().matches(Utils.PASSWORD_REGEX))
+            throw new ResponseStatusException(BAD_REQUEST, "'appUser.password' does not match pattern");
 
         return true;
+    }
+
+
+    /**
+     * Validate given {@code appUser} using all annotations of it's entity but exclude the password assuming that it's encoded. Throw if {@code appUser} is invalid.
+     * 
+     * @param appUser
+     * @return true if {@code appUser} is valid
+     * @throws IllegalStateException if {@code appUser} is null
+     * @throws ResponseStatusException if {@code appUser} is invalid
+     */
+    private boolean validateAndThrowIgnorePassword(AppUser appUser) throws IllegalStateException, ResponseStatusException {
+
+        if (appUser == null)
+            throw new IllegalStateException("Failed to validate appUser. 'appUser' cannot be null");
+
+        // validate all class annotations
+        this.validator.validateObject(appUser)
+                      .failOnError((message) -> new ResponseStatusException(BAD_REQUEST, "'appUser' is invalid"));
+                        
+        return true;
+    }
+
+
+    /**
+     * @param id of {@code appUser}
+     * @return {@code appUser} with given {@code id} of {@code null} (wont throw)
+     */
+    private AppUser getById(@Nullable Long id) {
+
+        if (id == null)
+            return null;
+
+        return this.appUserRepository.findById(id).orElse(null);
     }
 }

@@ -8,15 +8,19 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import de.code_notes.backend.abstracts.AbstractEntity;
 import de.code_notes.backend.abstracts.AppUserRole;
 import de.code_notes.backend.helpers.Utils;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -48,7 +52,6 @@ public class AppUser extends AbstractEntity implements UserDetails {
 
     @Column(nullable = false)
     @NotBlank(message = "'password' cannot be blank")
-    @Pattern(regexp = Utils.PASSWORD_REGEX, message = "'password' does not match pattern")
     @Schema(example = "Abc123,.")
     private String password;
 
@@ -57,16 +60,19 @@ public class AppUser extends AbstractEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private AppUserRole role;
 
-    @OneToMany(mappedBy = "appUser")
+    @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER)
     @Nullable
+    @JsonIgnore
     private Set<Tag> tags;
 
-    @OneToMany(mappedBy = "appUser")
+    @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER)
     @Nullable
+    @JsonIgnore
     private List<Note> notes;
 
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
         return Set.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
@@ -81,6 +87,7 @@ public class AppUser extends AbstractEntity implements UserDetails {
 
 
     @Override
+    @JsonIgnore
     public String getUsername() {
 
         return this.email;

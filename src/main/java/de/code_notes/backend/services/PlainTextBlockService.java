@@ -17,10 +17,12 @@ public class PlainTextBlockService {
 
     @Autowired
     private PlainTextBlockRepository plainTextBlockRepository;
-    
 
         
     public void deleteAll(List<PlainTextBlock> plainTextBlocks) {
+
+        if (plainTextBlocks == null)
+            return;
 
         this.plainTextBlockRepository.deleteAll(plainTextBlocks);
     }

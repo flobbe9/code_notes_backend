@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.code_notes.backend.entities.Note;
 import de.code_notes.backend.services.NoteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
@@ -28,6 +30,11 @@ public class NoteController {
 
     
     @GetMapping("/getAll")
+    @Operation(
+        responses = {
+            @ApiResponse(responseCode = "")
+        }
+    )
     // TODO: add @HasRole
         // add nullcheck?
     public Flux<Note> getAll(@AuthenticationPrincipal UserDetails userDetails) {
@@ -37,14 +44,27 @@ public class NoteController {
 
 
     @PostMapping("/save")
-    public Mono<Note> save(@RequestBody @Valid @NotNull(message = "'note' cannot be null") Note note) {
+    @Operation(
+        description = "Save or update note and relations",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Saved or updated note and relations successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid note"),
+            @ApiResponse(responseCode = "500", description = "Note is null")
+        }
+    )
+    public Mono<Note> save(@RequestBody @Valid Note note) {
 
-        // TODO: pass appuser
         return Mono.just(this.noteService.save(note));
     }
 
     
     @DeleteMapping("/delete")
+    @Operation(
+        description = "Delete",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Note deleted or did not exist anyway")
+        }
+    )
     public void delete(@RequestParam Long id) {
 
         this.noteService.delete(id);

@@ -1,5 +1,7 @@
 package de.code_notes.backend.abstracts;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import de.code_notes.backend.entities.Note;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
@@ -29,6 +31,7 @@ public class AbstractBlock extends AbstractEntity {
 
     @ManyToOne
     @JoinColumn(nullable = false)
+    @JsonIgnore // TODO: not sure here
     private Note note;
     
     @Lob

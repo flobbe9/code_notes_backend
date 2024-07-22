@@ -2,6 +2,8 @@ package de.code_notes.backend.abstracts;
 
 import java.time.LocalDateTime;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,10 +24,13 @@ public abstract class AbstractEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(example = "1")
     private Long id;
     
+    @Column(nullable = false)
     private LocalDateTime created;
 
+    @Column(nullable = false)
     private LocalDateTime updated;
 
 
