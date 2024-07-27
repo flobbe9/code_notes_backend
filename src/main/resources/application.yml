@@ -19,7 +19,6 @@ spring:
         exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
     config:
         # include .env file
-        # TODO: how to differentiate?
         import: optional:file:.env.local[.properties]
     output:
         # colored terminal
