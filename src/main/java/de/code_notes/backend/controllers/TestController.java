@@ -1,6 +1,7 @@
 package de.code_notes.backend.controllers;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,9 +18,16 @@ import jakarta.validation.constraints.NotNull;
 @RequestMapping("/test")
 public class TestController {
     
-    @PostMapping("")
+    @PostMapping
     public void test(@RequestParam @Min(value = 3, message = "lower than 3") Integer num) {
         
         throw new ResponseStatusException(HttpStatus.OK, num.toString());
+    }
+
+        
+    @GetMapping
+    public String test() {
+
+        return "test";
     }
 }

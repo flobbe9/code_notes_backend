@@ -3,6 +3,8 @@ package de.code_notes.backend.entities;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import de.code_notes.backend.abstracts.AbstractEntity;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.Nullable;
@@ -39,12 +41,22 @@ public class Note extends AbstractEntity {
     @NotNull(message = "'title' cannot be null (but blank though)")
     private String title;
 
-    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(
+        mappedBy = "note", 
+        cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
+        fetch = FetchType.EAGER, 
+        orphanRemoval = true
+    )
     @Nullable
     @Hidden
     private List<@Valid PlainTextBlock> plainTextBlocks;
 
-    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(
+        mappedBy = "note", 
+        cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
+        fetch = FetchType.EAGER, 
+        orphanRemoval = true
+    )
     @Nullable
     @Hidden
     private List<@Valid CodeBlock> codeBlocks;
@@ -55,8 +67,6 @@ public class Note extends AbstractEntity {
     private Set<@Valid Tag> tags;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
-    @NotNull(message = "'appUser' cannot be null")
-    @Valid
+    @JsonIgnore
     private AppUser appUser;
 }

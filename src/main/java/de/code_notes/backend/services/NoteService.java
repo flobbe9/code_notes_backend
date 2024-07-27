@@ -1,16 +1,15 @@
 package de.code_notes.backend.services;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
-
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.Validator;
-import org.springframework.web.server.ResponseStatusException;
-
+import de.code_notes.backend.abstracts.AbstractService;
+import de.code_notes.backend.entities.AppUser;
+import de.code_notes.backend.entities.CodeBlock;
 import de.code_notes.backend.entities.Note;
+import de.code_notes.backend.entities.PlainTextBlock;
 import de.code_notes.backend.repositories.NoteRepository;
 import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
@@ -18,7 +17,7 @@ import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
-public class NoteService {
+public class NoteService extends AbstractService<Note> {
 
     @Autowired
     private NoteRepository noteRepository;
@@ -27,65 +26,88 @@ public class NoteService {
     private TagService tagService;
 
     @Autowired
-    private AppUserService appUserService;
-
-    @Autowired
     private CodeBlockService codeBlockService;
     
     @Autowired
     private PlainTextBlockService plainTextBlockService;
 
-    @Autowired
-    private Validator validator;
-
 
     /**
-     * @param appUserEmail email of {@code appUser}
-     * @return all notes related to {@code appUser} with given email or empty list
+     * @param appUser to find notes for
+     * @return all notes related to {@code appUser} or empty list
      */
-    // TODO: test this
-    public List<Note> getAllByUser(String appUserEmail) {
+    public List<Note> getAllByAppUser(AppUser appUser) {
 
-        return this.noteRepository.findAllByAppUserEmail(appUserEmail);
+        return this.noteRepository.findAllByAppUser(appUser);
     }
 
 
     /**
-     * TODO
-     * @param note
-     * @return
+     * Save or create given {@code note} and reference it to given {@code appUser}.
+     * Also save or delete tags if necessary.
+     * 
+     * @param note to save. {@code appUser} field might not be present because of {@code @JsonIgnore}
+     * @return saved {@code note}
+     * @throws IllegalStateException if a param is {@code null}
      */
-    public Note save(Note note) {
+    public Note save(Note note, AppUser appUser) {
 
-        // case: falsy param
-        if (note == null)
-            throw new IllegalStateException("Failed to save note. 'note' cannot be null");
+        // case: falsy params
+        if (note == null || appUser == null)
+            throw new IllegalStateException("Failed to save note. 'note' or 'appUser' are null");
 
         // validate
-        validateAndThrow(note);
+        super.validateAndThrow(note);
 
-        // case: appUser does not exist
-        if (!this.appUserService.exists(note.getAppUser()))
-            throw new ResponseStatusException(CONFLICT, "Failed to save note. 'note.appUser' does not exist");
+        // save related entites
+        note = saveRelatedEntities(note, appUser);
+
+        // save
+        note = this.noteRepository.save(note);
+
+        // remove tags that are no longer related to any note
+        this.tagService.removeOrphanTags(appUser);
+
+        return note;
+    }
+
+
+    /**
+     * Save the notes related entities. If the {@code note} does not exist in db yet, save it beforehand. Wont save the {@code note} after updating relations.
+     * <p>
+     * The note's existing blocks will be deleted and then saved as new entity.
+     * 
+     * @param note to save the relations from
+     * @param appUser for the {@code note} to reference
+     * @return the {@code note} with the updated
+     * @throws IllegalStateException if a param is {@code null}
+     */
+    private Note saveRelatedEntities(Note note, AppUser appUser) {
+
+        // case: falsy params
+        if (note == null || appUser == null)
+            throw new IllegalStateException("Failed to save related entities of note. 'note' or 'appUser' are null");
+
+        // set app user since they're ignored in the note object
+        note.setAppUser(appUser);
+
+        Note oldNote = getById(note.getId());
+        
+        this.tagService.handleSaveNote(note, appUser);
 
         // case: note exists
-        Note oldNote = getById(note.getId());
-        // TODO: test
         if (oldNote != null) {
             // delete old blocks
             this.codeBlockService.deleteAll(oldNote.getCodeBlocks());
             this.plainTextBlockService.deleteAll(oldNote.getPlainTextBlocks());
-        }
 
-        // save and get tags
-        if (note.getTags() != null)
-            note.setTags(this.tagService.saveOrGetNoteTags(note));
+        // case: note does not exist
+        } else 
+            note = this.noteRepository.save(note);
 
-        note = this.noteRepository.save(note);
+        this.plainTextBlockService.addNoteReferences(note);
 
-        // remove tags that are no longer related to any note
-        // TODO: test
-        this.tagService.removeOrphanTags(note.getAppUser());
+        this.codeBlockService.addNoteReferences(note);
 
         return note;
     }
@@ -124,18 +146,5 @@ public class NoteService {
     public void delete(@Nullable Long id) {
 
         this.delete(getById(id));
-    }
-
-
-    // TODO: put this inside abstract service
-    private boolean validateAndThrow(Note note) {
-
-        if (note == null)
-            throw new IllegalStateException("Failed to validate note. 'note' cannot be null");
-
-        this.validator.validateObject(note)
-                      .failOnError((message) -> new ResponseStatusException(BAD_REQUEST, "'note' invalid"));
-
-        return true;
     }
 }

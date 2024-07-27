@@ -4,7 +4,6 @@ import de.code_notes.backend.abstracts.AbstractBlock;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +11,7 @@ import lombok.Setter;
 
 /**
  * Entity defining a code block inside a note. Will be highlighted in frontend. Extedns {@link AbstractBlock}
+ * Use default equals and hashcode implementation.
  * 
  * @since 0.0.1
  */
@@ -20,7 +20,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class CodeBlock extends AbstractBlock {
     
     @Nullable

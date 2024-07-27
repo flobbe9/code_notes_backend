@@ -1,5 +1,7 @@
 package de.code_notes.backend.entities;
 
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import de.code_notes.backend.abstracts.AbstractEntity;
@@ -11,9 +13,10 @@ import lombok.Setter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 
@@ -35,8 +38,12 @@ public class Tag extends AbstractEntity {
     @Size(max = 50, message = "'name' cannot have more charactes than 50")
     private String name;
 
+    @ManyToMany
+    @JoinTable(name = "note_tags", inverseJoinColumns = { @JoinColumn(name = "note_id", referencedColumnName = "id", nullable = false) })
+    @JsonIgnore
+    private Set<Note> notes;
+
     @ManyToOne
-    @JoinColumn(nullable = false)
     @JsonIgnore
     private AppUser appUser;
 }

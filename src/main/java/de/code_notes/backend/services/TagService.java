@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import de.code_notes.backend.abstracts.AbstractService;
 import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.Note;
 import de.code_notes.backend.entities.Tag;
@@ -19,10 +20,31 @@ import jakarta.annotation.Nullable;
  * @since 0.0.1
  */
 @Service
-public class TagService {
+public class TagService extends AbstractService<Tag> {
     
     @Autowired
     private TagRepository tagRepository;
+
+
+    /**
+     * Create given {@code note}'s tags or retrieve them from db if they already exist for this appUser. Then update {@code note.tags} (but dont save {@code note}).
+     * 
+     * @param note to update the tags and tag's list for
+     * @param appUser referenced by the {@code note}
+     * @throws IllegalStateException if {@code note} or {@code appUser} is {@code null}
+     */
+    public void handleSaveNote(Note note, AppUser appUser) {
+        
+        // case: falsy param
+        if (note == null || appUser == null)
+            throw new IllegalStateException("Failed to handle saving a note. 'note' or 'appUser' are null");
+        
+        // contains only tags from db
+        Set<Tag> tags = getOrCreateNoteTags(note, appUser);
+
+        if (tags != null)
+            note.setTags(tags);
+    }
 
 
     /**
@@ -30,34 +52,39 @@ public class TagService {
      * tag from the db.
      * 
      * @param note to update tags for
-     * @return updated {@code note} tags
-     * @throws IllegalStateException if {@code note} or {@code note.appUser} is {@code null}
+     * @return updated {@code note} tags or {@code null} if {@code note.tags} is {@code null}
+     * @throws IllegalStateException if {@code note} or {@code appUser} is {@code null}
      */
-    public Set<Tag> saveOrGetNoteTags(Note note) {
+    private Set<Tag> getOrCreateNoteTags(Note note, AppUser appUser) {
 
         // case: falsy param
-        if (note == null || note.getAppUser() == null)
-            throw new IllegalStateException("Failed to save or get note tags. 'note' or 'note.appUser' are null");
+        if (note == null || appUser == null)
+            throw new IllegalStateException("Failed to save or get note tags. 'note' or 'appUser' are null");
+
+        // case: has no tags
+        if (note.getTags() == null)
+            return null;
             
-        AppUser appUser = note.getAppUser();
+        // map tags from db
+        return note.getTags()
+                    .stream()
+                    .map(tag -> {
+                        Tag tagFromDb = this.tagRepository.findByNameAndAppUser(tag.getName(), appUser)
+                                                            .orElse(null);
 
-        Set<Tag> tags = note.getTags()
-                            .stream()
-                            .map(tag -> {
-                                Tag tagFromDb = this.tagRepository.findByNameAndAppUser(tag.getName(), appUser).orElse(null);
-
-                                // case: new tag
-                                if (tagFromDb == null) {
-                                    tag.setAppUser(appUser);
-                                    return this.tagRepository.save(tag);
-                                    
-                                // case: tag exists
-                                } else 
-                                    return tagFromDb;
-                            })
-                            .collect(Collectors.toSet());
-
-        return tags;
+                        // case: new tag
+                        if (tagFromDb == null) {
+                            // validate
+                            super.validateAndThrow(tag);
+                            
+                            tag.setAppUser(appUser);
+                            return this.tagRepository.save(tag);
+                            
+                        // case: tag exists
+                        } else 
+                            return tagFromDb;
+                    })
+                    .collect(Collectors.toSet());
     }
 
 
@@ -65,8 +92,6 @@ public class TagService {
      * @param appUser to get the tags for
      * @return list of all tags in db related to given {@code appUser} or an empty list
      */
-    // TODO: test
-        // is this even necessary?
     public List<Tag> getAllByUser(@Nullable AppUser appUser) {
 
         if (appUser == null)
@@ -76,11 +101,21 @@ public class TagService {
     }
 
 
-    // TODO
-    public void removeOrphanTags(AppUser appUser) {
+    /**
+     * Remove all tags of given appUser that don't have any notes (which means that the tag is useless).
+     * 
+     * @param appUser to check the tags for
+     */
+    public void removeOrphanTags(@Nullable AppUser appUser) {
 
-        // iterate all tags of user
-            // if has no notes
-                // delete
+        // case: falsy param
+        if (appUser == null)
+            return;
+
+        getAllByUser(appUser).forEach(tag -> {
+            // case: tag has not notes anymore
+            if (tag.getNotes().isEmpty())
+                this.tagRepository.delete(tag);
+        });
     }
 }

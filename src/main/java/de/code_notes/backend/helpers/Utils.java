@@ -1,21 +1,23 @@
 package de.code_notes.backend.helpers;
 
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -66,13 +68,13 @@ public class Utils {
     @Bean
     File verificationMail() {
 
-        return getFile(MAIL_FOLDER + VERIFICATION_MAIL_FILE_NAME);
+        return new File(MAIL_FOLDER + VERIFICATION_MAIL_FILE_NAME);
     }
 
     @Bean
     File favicon() {
 
-        return getFile(IMG_FOLDER + FAVICON_FILE_NAME);
+        return new File(IMG_FOLDER + FAVICON_FILE_NAME);
     }
 
 
@@ -80,10 +82,11 @@ public class Utils {
      * Convert file into String using {@link BufferedReader}.
      * 
      * @param file to convert
-     * @return converted string or null, if file is null
-     * @throws ApiException
+     * @return converted string
+     * @throws IOException 
+     * @throws FileNotFoundException 
      */
-    public static String fileToString(File file) {
+    public static String fileToString(File file) throws FileNotFoundException, IOException {
         
         // read to string
         try (Reader fis = new FileReader(file);
@@ -96,11 +99,6 @@ public class Utils {
 
             String str = stringBuilder.toString();
             return replaceOddChars(str);
-            
-        } catch (Exception e) {
-            // TODO: 
-            return null;
-            // throw new ApiException("Failed to read file to String.", e);
         }
     }
 
@@ -111,19 +109,14 @@ public class Utils {
      * @param str to write to file
      * @param file to write the string to
      * @return the file
-     * @throws ApiException
+     * @throws IOException 
      */
-    public static File stringToFile(String str, File file) {
+    public static File stringToFile(String str, File file) throws IOException {
 
         try (BufferedWriter br = new BufferedWriter(new FileWriter(file))) {
             br.write(str);
 
             return file;
-
-        } catch (Exception e) {
-            // TODO: 
-            return null;
-            // throw new ApiException("Failed to write String to File.", e);
         }
     }
 
@@ -213,8 +206,10 @@ public class Utils {
      * @param bytes content of file
      * @param fileName name of the file
      * @return file or {@code null} if a param is invalid
+     * @throws IOException 
+     * @throws FileNotFoundException 
      */
-    public static File byteArrayToFile(byte[] bytes, String fileName) {
+    public static File byteArrayToFile(byte[] bytes, String fileName) throws FileNotFoundException, IOException {
 
         String completeFileName = STATIC_FOLDER + prependSlash(fileName);
 
@@ -225,9 +220,6 @@ public class Utils {
             fos.write(bytes);
 
             return new File(completeFileName);
-
-        } catch (Exception e) {
-            return null;
         }
     }
 
@@ -237,17 +229,11 @@ public class Utils {
      * 
      * @param file to read
      * @return byte array
+     * @throws IOException 
      */
-    public static byte[] fileToByteArray(File file) {
+    public static byte[] fileToByteArray(File file) throws IOException {
 
-        try {
-            return Files.readAllBytes(file.toPath());
-
-        } catch (Exception e) {
-            // TODO: 
-            return null;
-            // throw new ApiException("Failed to read file to byte array.", e);
-        }
+        return Files.readAllBytes(file.toPath());
     }
 
 
@@ -273,20 +259,13 @@ public class Utils {
     /**
      * @param object to convert to json string
      * @return given object as json string
+     * @throws JsonProcessingException 
      */
-    public static String objectToJson(Object object) {
+    public static String objectToJson(Object object) throws JsonProcessingException {
 
-        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        ObjectWriter objectWriter = getDefaultObjectMapper().writer().withDefaultPrettyPrinter();
 
-        try {
-            return objectWriter.writeValueAsString(object);
-
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            // TODO: 
-            return null;
-            // throw new ApiException(NOT_ACCEPTABLE, "Failed to convert object to json String.", e);
-        }
+        return objectWriter.writeValueAsString(object);
     }
 
 
@@ -306,34 +285,8 @@ public class Utils {
             zoneId = ZoneId.systemDefault();
         }
 
-        try {
-            Instant instant = Instant.ofEpochMilli(millis);
-            return LocalDateTime.ofInstant(instant, zoneId);
-            
-        // case: invalid millis
-        } catch (DateTimeException e) {
-            return null;
-        }
-    }
-
-
-    /**
-     * Retrieve file or throw {@code ApiException}.
-     * 
-     * @param filePath of file TODO: relative to waht?
-     * @return file or null if filePath is null
-     */
-    public static File getFile(String filePath) {
-
-        // if (isBlank(filePath))
-            // throw new ApiException("Failed to get file. 'filePath' is null or blank.");
-
-        File file = new File(filePath);
-
-        // if (!file.exists())
-        //     throw new ApiException(NOT_ACCEPTABLE, "Failed to get file: " + filePath);
-
-        return file;
+        Instant instant = Instant.ofEpochMilli(millis);
+        return LocalDateTime.ofInstant(instant, zoneId);
     }
 
 
@@ -343,9 +296,6 @@ public class Utils {
      * @param runnable lambda function without parameter or return value
      */
     public static void runInsideThread(Runnable runnable) {
-
-        // if (runnable == null)
-        //     throw new ApiException("Failed to run task inside thread. 'runnable' is null.");
 
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(runnable);
@@ -361,9 +311,6 @@ public class Utils {
      */
     public static <T> void runInsideThread(Callable<T> callable) {
 
-        // if (callable == null)
-        //     throw new ApiException("Failed to run task inside thread. 'callable' is null.");
-
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(callable);
     }
@@ -372,5 +319,34 @@ public class Utils {
     public static boolean isBlank(String str) {
 
         return str == null || str.isBlank();
+    }
+
+
+    /**
+     * Default format for a {@link LocalDateTime} with pattern {@code "yyyy-MM-dd HH:mm:ss:SS Z"}.
+     * 
+     * @param localDateTime to format
+     * @return formatted string or {@code ""} if {@code localDateTime} is {@code null}
+     */
+    public static String formatLocalDateTimeDefault(LocalDateTime localDateTime) {
+
+        if (localDateTime == null)
+            return "";
+
+        return ZonedDateTime.now()
+                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS Z"));
+    }
+
+
+    /**
+     * @return new object mapper instance that can handle {@link LocalDate} and {@link LocalDateTime}
+     */
+    public static ObjectMapper getDefaultObjectMapper() {
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.findAndRegisterModules();
+        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+
+        return mapper;
     }
 }

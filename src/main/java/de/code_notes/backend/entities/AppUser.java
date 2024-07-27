@@ -13,15 +13,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.code_notes.backend.abstracts.AbstractEntity;
 import de.code_notes.backend.abstracts.AppUserRole;
 import de.code_notes.backend.helpers.Utils;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -60,15 +62,17 @@ public class AppUser extends AbstractEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private AppUserRole role;
 
-    @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @Nullable
-    @JsonIgnore
-    private Set<Tag> tags;
+    private Set<@Valid Tag> tags;
 
-    @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @Nullable
-    @JsonIgnore
-    private List<Note> notes;
+    private List<@Valid Note> notes;
+
+    /** Will be set on login before the authenticated appUser is returned in response */
+    @Transient
+    private String csrfToken;
 
 
     @Override

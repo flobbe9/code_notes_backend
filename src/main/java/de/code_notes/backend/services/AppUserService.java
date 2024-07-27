@@ -1,9 +1,9 @@
 package de.code_notes.backend.services;
 
 import org.springframework.stereotype.Service;
-import org.springframework.validation.Validator;
 import org.springframework.web.server.ResponseStatusException;
 
+import de.code_notes.backend.abstracts.AbstractService;
 import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.helpers.Utils;
 import de.code_notes.backend.repositories.AppUserRepository;
@@ -26,16 +26,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @Service
 @Log4j2
-public class AppUserService implements UserDetailsService {
+public class AppUserService extends AbstractService<AppUser> implements UserDetailsService {
 
     @Autowired
     private AppUserRepository appUserRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private Validator validator;
 
 
     /**
@@ -75,7 +72,7 @@ public class AppUserService implements UserDetailsService {
             throw new IllegalStateException("Failed to save new appUser. 'appUser' cannot be null");
 
         // validate
-        validateAndThrow(appUser);
+        validateAndThrowIncludePassword(appUser);
 
         // duplicate check
         if (exists(appUser))
@@ -118,7 +115,7 @@ public class AppUserService implements UserDetailsService {
                 throw new ResponseStatusException(CONFLICT, "Failed to update appUser. AppUser with this email does already exist");
 
         // validate
-        validateAndThrowIgnorePassword(appUser);
+        validateAndThrow(appUser);
 
         return this.appUserRepository.save(appUser);
     }
@@ -182,46 +179,25 @@ public class AppUserService implements UserDetailsService {
 
 
     /**
-     * Validate given {@code appUser} using all annotations of it's entity. Throw if {@code appUser} is invalid.
+     * Call {@link #validateAndThrow} and validate the password in addition (since it's not annotated with any regex). 
      * 
-     * @param appUser
+     * @param appUser to validate
      * @return true if {@code appUser} is valid
      * @throws IllegalStateException if {@code appUser} is null
      * @throws ResponseStatusException if {@code appUser} is invalid
      */
-    private boolean validateAndThrow(AppUser appUser) throws IllegalStateException, ResponseStatusException {
+    private boolean validateAndThrowIncludePassword(AppUser appUser) throws IllegalStateException, ResponseStatusException {
 
         if (appUser == null)
             throw new IllegalStateException("Failed to validate appUser. 'appUser' cannot be null");
 
         // validate all class annotations
-        validateAndThrowIgnorePassword(appUser);
+        validateAndThrow(appUser);
 
         // validate password
         if (!appUser.getPassword().matches(Utils.PASSWORD_REGEX))
             throw new ResponseStatusException(BAD_REQUEST, "'appUser.password' does not match pattern");
 
-        return true;
-    }
-
-
-    /**
-     * Validate given {@code appUser} using all annotations of it's entity but exclude the password assuming that it's encoded. Throw if {@code appUser} is invalid.
-     * 
-     * @param appUser
-     * @return true if {@code appUser} is valid
-     * @throws IllegalStateException if {@code appUser} is null
-     * @throws ResponseStatusException if {@code appUser} is invalid
-     */
-    private boolean validateAndThrowIgnorePassword(AppUser appUser) throws IllegalStateException, ResponseStatusException {
-
-        if (appUser == null)
-            throw new IllegalStateException("Failed to validate appUser. 'appUser' cannot be null");
-
-        // validate all class annotations
-        this.validator.validateObject(appUser)
-                      .failOnError((message) -> new ResponseStatusException(BAD_REQUEST, "'appUser' is invalid"));
-                        
         return true;
     }
 

@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.Note;
 import de.code_notes.backend.services.NoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,17 +29,15 @@ public class NoteController {
     private NoteService noteService;
 
     
-    @GetMapping("/getAll")
+    @GetMapping("/getAllByAppUser")
     @Operation(
         responses = {
             @ApiResponse(responseCode = "")
         }
     )
-    // TODO: add @HasRole
-        // add nullcheck?
-    public Flux<Note> getAll(@AuthenticationPrincipal UserDetails userDetails) {
+    public Flux<Note> getAllByAppUser(@AuthenticationPrincipal UserDetails userDetails) {
 
-        return Flux.fromIterable(this.noteService.getAllByUser(userDetails.getUsername()));
+        return Flux.fromIterable(this.noteService.getAllByAppUser((AppUser) userDetails));
     }
 
 
@@ -52,9 +50,9 @@ public class NoteController {
             @ApiResponse(responseCode = "500", description = "Note is null")
         }
     )
-    public Mono<Note> save(@RequestBody @Valid Note note) {
+    public Mono<Note> save(@RequestBody @Valid Note note, @AuthenticationPrincipal UserDetails userDetails) {
 
-        return Mono.just(this.noteService.save(note));
+        return Mono.just(this.noteService.save(note, (AppUser) userDetails));
     }
 
     

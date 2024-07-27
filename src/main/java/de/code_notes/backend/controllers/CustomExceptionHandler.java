@@ -4,8 +4,6 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -121,19 +119,9 @@ public class CustomExceptionHandler {
     }
 
 
-    private String formatTimestamp(LocalDateTime localDateTime) {
-
-        if (localDateTime == null)
-            return "";
-
-        return ZonedDateTime.now()
-                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS Z"));
-    }
-
-
     private String formatTimestamp() {
 
-        return formatTimestamp(LocalDateTime.now());
+        return Utils.formatLocalDateTimeDefault(LocalDateTime.now());
     }
 
 

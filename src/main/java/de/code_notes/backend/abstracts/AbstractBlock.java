@@ -6,7 +6,6 @@ import de.code_notes.backend.entities.Note;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
@@ -28,16 +27,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AbstractBlock extends AbstractEntity {
-
-    @ManyToOne
-    @JoinColumn(nullable = false)
-    @JsonIgnore // TODO: not sure here
-    private Note note;
     
     @Lob
     @Column(nullable = false)
     @NotNull(message = "'value' cannot be null (but blank though)")
     private String value;
+
+    @ManyToOne
+    @JsonIgnore
+    private Note note;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
