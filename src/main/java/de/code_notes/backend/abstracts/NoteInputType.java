@@ -2,11 +2,11 @@ package de.code_notes.backend.abstracts;
 
 
 /**
- * Enum defining the type a block can have.
+ * Enum defining the type a note input can have.
  * 
  * @since 0.0.1
  */
-public enum BlockType {
+public enum NoteInputType {
     
     /** Contains simple plain text as value. */
     PLAIN_TEXT,
