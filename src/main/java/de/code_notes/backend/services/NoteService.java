@@ -1,15 +1,11 @@
 package de.code_notes.backend.services;
 
 import java.util.List;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import de.code_notes.backend.abstracts.AbstractService;
 import de.code_notes.backend.entities.AppUser;
-import de.code_notes.backend.entities.CodeBlock;
 import de.code_notes.backend.entities.Note;
-import de.code_notes.backend.entities.PlainTextBlock;
 import de.code_notes.backend.repositories.NoteRepository;
 import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
@@ -26,10 +22,7 @@ public class NoteService extends AbstractService<Note> {
     private TagService tagService;
 
     @Autowired
-    private CodeBlockService codeBlockService;
-    
-    @Autowired
-    private PlainTextBlockService plainTextBlockService;
+    private NoteInputService noteInputService;
 
 
     /**
@@ -48,13 +41,13 @@ public class NoteService extends AbstractService<Note> {
      * 
      * @param note to save. {@code appUser} field might not be present because of {@code @JsonIgnore}
      * @return saved {@code note}
-     * @throws IllegalStateException if a param is {@code null}
+     * @throws IllegalArgumentException if a param is {@code null}
      */
     public Note save(Note note, AppUser appUser) {
 
         // case: falsy params
         if (note == null || appUser == null)
-            throw new IllegalStateException("Failed to save note. 'note' or 'appUser' are null");
+            throw new IllegalArgumentException("Failed to save note. 'note' or 'appUser' are null");
 
         // validate
         super.validateAndThrow(note);
@@ -75,18 +68,18 @@ public class NoteService extends AbstractService<Note> {
     /**
      * Save the notes related entities. If the {@code note} does not exist in db yet, save it beforehand. Wont save the {@code note} after updating relations.
      * <p>
-     * The note's existing blocks will be deleted and then saved as new entity.
+     * The note's existing inputs will be deleted and then saved as new entity.
      * 
      * @param note to save the relations from
      * @param appUser for the {@code note} to reference
      * @return the {@code note} with the updated
-     * @throws IllegalStateException if a param is {@code null}
+     * @throws IllegalArgumentException if a param is {@code null}
      */
     private Note saveRelatedEntities(Note note, AppUser appUser) {
 
         // case: falsy params
         if (note == null || appUser == null)
-            throw new IllegalStateException("Failed to save related entities of note. 'note' or 'appUser' are null");
+            throw new IllegalArgumentException("Failed to save related entities of note. 'note' or 'appUser' are null");
 
         // set app user since they're ignored in the note object
         note.setAppUser(appUser);
@@ -97,17 +90,14 @@ public class NoteService extends AbstractService<Note> {
 
         // case: note exists
         if (oldNote != null) {
-            // delete old blocks
-            this.codeBlockService.deleteAll(oldNote.getCodeBlocks());
-            this.plainTextBlockService.deleteAll(oldNote.getPlainTextBlocks());
+            // delete old inputs
+            this.noteInputService.deleteAll(oldNote.getNoteInputs());
 
         // case: note does not exist
         } else 
             note = this.noteRepository.save(note);
 
-        this.plainTextBlockService.addNoteReferences(note);
-
-        this.codeBlockService.addNoteReferences(note);
+        this.noteInputService.addNoteReferences(note);
 
         return note;
     }

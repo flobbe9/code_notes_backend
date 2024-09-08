@@ -26,6 +26,10 @@ import java.util.concurrent.Executors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -348,5 +352,16 @@ public class Utils {
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
 
         return mapper;
+    }
+
+
+    /**
+     * @return the path of the request currently beeing processed
+     */
+    public static String getReqeustPath() {
+
+        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+            .getRequest()
+            .getServletPath();
     }
 }

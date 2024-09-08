@@ -29,16 +29,16 @@ public class NoteController {
     private NoteService noteService;
 
     
-    @GetMapping("/getAllByAppUser")
-    @Operation(
-        responses = {
-            @ApiResponse(responseCode = "")
-        }
-    )
-    public Flux<Note> getAllByAppUser(@AuthenticationPrincipal UserDetails userDetails) {
+    // @GetMapping("/getAllByAppUser")
+    // @Operation(
+    //     responses = {
+    //         @ApiResponse(responseCode = "")
+    //     }
+    // )
+    // public Flux<Note> getAllByAppUser(@AuthenticationPrincipal UserDetails userDetails) {
 
-        return Flux.fromIterable(this.noteService.getAllByAppUser((AppUser) userDetails));
-    }
+    //     return Flux.fromIterable(this.noteService.getAllByAppUser((AppUser) userDetails));
+    // }
 
 
     @PostMapping("/save")
@@ -47,6 +47,8 @@ public class NoteController {
         responses = {
             @ApiResponse(responseCode = "200", description = "Saved or updated note and relations successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid note"),
+            @ApiResponse(responseCode = "401", description = "Not logged in"),
+            @ApiResponse(responseCode = "403", description = "Invalid csrf"),
             @ApiResponse(responseCode = "500", description = "Note is null")
         }
     )
@@ -60,7 +62,9 @@ public class NoteController {
     @Operation(
         description = "Delete",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Note deleted or did not exist anyway")
+            @ApiResponse(responseCode = "200", description = "Note deleted or did not exist anyway"),
+            @ApiResponse(responseCode = "401", description = "Not logged in"),
+            @ApiResponse(responseCode = "403", description = "Invalid csrf"),
         }
     )
     public void delete(@RequestParam Long id) {

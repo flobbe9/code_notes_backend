@@ -40,13 +40,13 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * 
      * @param appUser to save
      * @return saved {@code appUser} or {@code null}
-     * @throws IllegalStateException if {@code appUser} is {@code null}
+     * @throws IllegalArgumentException if {@code appUser} is {@code null}
      */
     public AppUser save(AppUser appUser) {
 
         // case: falsy param
         if (appUser == null)
-            throw new IllegalStateException("Failed to save appUser. 'appUser' cannot be null");
+            throw new IllegalArgumentException("Failed to save appUser. 'appUser' cannot be null");
 
         // case: appUser exists
         if (appUser.getId() != null)
@@ -62,14 +62,14 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * 
      * @param appUser to save
      * @return the saved {@code appUser}
-     * @throws IllegalStateException if given {@code appUser} is {@code null}
+     * @throws IllegalArgumentException if given {@code appUser} is {@code null}
      * @throws ResponseStatusException if given {@code appUser} is invalid
      */
-    private AppUser saveNew(AppUser appUser) throws IllegalStateException, ResponseStatusException {
+    private AppUser saveNew(AppUser appUser) throws IllegalArgumentException, ResponseStatusException {
 
         // case: falsy param
         if (appUser == null)
-            throw new IllegalStateException("Failed to save new appUser. 'appUser' cannot be null");
+            throw new IllegalArgumentException("Failed to save new appUser. 'appUser' cannot be null");
 
         // validate
         validateAndThrowIncludePassword(appUser);
@@ -93,14 +93,14 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * 
      * @param appUser to update
      * @return updated {@code appUser}
-     * @throws IllegalStateException if {@code appUser} is {@code null}
+     * @throws IllegalArgumentException if {@code appUser} is {@code null}
      * @throws ResponseStatusException if {@code appUser} is invalid
      */
     private AppUser update(AppUser appUser) {
 
         // case: falsy param
         if (appUser == null)
-            throw new IllegalStateException("Failed to update appUser. 'appUser' cannot be null");
+            throw new IllegalArgumentException("Failed to update appUser. 'appUser' cannot be null");
 
         AppUser oldAppUser = getById(appUser.getId());
 
@@ -161,14 +161,14 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
     /**
      * @param appUser to encode the password for
-     * @throws IllegalStateException if {@code appUser} is {@code null}
+     * @throws IllegalArgumentException if {@code appUser} is {@code null}
      * @throws ResponseStatusException if {@code appUser.password} is blank
      */
     private void encodePassword(AppUser appUser) throws ResponseStatusException {
 
         // case: falsy param
         if (appUser == null)
-            throw new IllegalStateException("Failed to encode password. 'appUser' cannot be null");
+            throw new IllegalArgumentException("Failed to encode password. 'appUser' cannot be null");
         
         // case: password blank
         if (Utils.isBlank(appUser.getPassword()))
@@ -183,13 +183,13 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * 
      * @param appUser to validate
      * @return true if {@code appUser} is valid
-     * @throws IllegalStateException if {@code appUser} is null
+     * @throws IllegalArgumentException if {@code appUser} is null
      * @throws ResponseStatusException if {@code appUser} is invalid
      */
-    private boolean validateAndThrowIncludePassword(AppUser appUser) throws IllegalStateException, ResponseStatusException {
+    private boolean validateAndThrowIncludePassword(AppUser appUser) throws IllegalArgumentException, ResponseStatusException {
 
         if (appUser == null)
-            throw new IllegalStateException("Failed to validate appUser. 'appUser' cannot be null");
+            throw new IllegalArgumentException("Failed to validate appUser. 'appUser' cannot be null");
 
         // validate all class annotations
         validateAndThrow(appUser);

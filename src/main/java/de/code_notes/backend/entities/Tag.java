@@ -22,6 +22,8 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Entity defining a tag a note can have to improove searching and sorting. Use only {@code name} for equals and hashcode.
+ * <p>
+ * Is unique to an {@code appUser}.
  * 
  * @since 0.0.1
  */

@@ -25,14 +25,14 @@ abstract public class AbstractService<T extends AbstractEntity> {
      * 
      * @param entity to validate
      * @return true if {@code entity} is valid
-     * @throws IllegalStateException if {@code entity} is null
+     * @throws IllegalArgumentException if {@code entity} is null
      * @throws ResponseStatusException if {@code entity} is invalid
      */
     protected boolean validateAndThrow(T note) {
 
         // case: falsy param
         if (note == null)
-            throw new IllegalStateException("Failed to validate entity. 'entity' cannot be null");
+            throw new IllegalArgumentException("Failed to validate entity. 'entity' cannot be null");
 
         this.validator.validateObject(note)
                         .failOnError((message) -> new ResponseStatusException(BAD_REQUEST, "'entity' invalid"));

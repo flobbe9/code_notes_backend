@@ -70,8 +70,9 @@ public class AppUser extends AbstractEntity implements UserDetails {
     @Nullable
     private List<@Valid Note> notes;
 
-    /** Will be set on login before the authenticated appUser is returned in response */
+    /** Will only be present for successful /login response  */
     @Transient
+    @Nullable
     private String csrfToken;
 
 
@@ -95,5 +96,37 @@ public class AppUser extends AbstractEntity implements UserDetails {
     public String getUsername() {
 
         return this.email;
+    }
+
+
+    @Override
+    @JsonIgnore 
+    public boolean isEnabled() {
+
+        return true;
+    }
+    
+
+    @Override
+    @JsonIgnore 
+    public boolean isAccountNonExpired() {
+
+        return true;
+    }
+
+
+    @Override
+    @JsonIgnore 
+    public boolean isAccountNonLocked() {
+
+        return true;
+    }
+
+
+    @Override
+    @JsonIgnore 
+    public boolean isCredentialsNonExpired() {
+
+        return true;
     }
 }

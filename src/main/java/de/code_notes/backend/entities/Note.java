@@ -26,7 +26,7 @@ import lombok.Setter;
 
 
 /**
- * Entity defining a note. Contains blocks that contain the text values. Use default equals and hash code.
+ * Entity defining a note. Contains inputs and tags. Use default equals and hash code.
  * 
  * @since 0.0.1
  */
@@ -42,28 +42,18 @@ public class Note extends AbstractEntity {
     private String title;
 
     @OneToMany(
-        mappedBy = "note", 
+        mappedBy = "note",
         cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
-        fetch = FetchType.EAGER, 
+        fetch = FetchType.EAGER,
         orphanRemoval = true
     )
     @Nullable
-    @Hidden
-    private List<@Valid PlainTextBlock> plainTextBlocks;
-
-    @OneToMany(
-        mappedBy = "note", 
-        cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
-        fetch = FetchType.EAGER, 
-        orphanRemoval = true
-    )
-    @Nullable
-    @Hidden
-    private List<@Valid CodeBlock> codeBlocks;
+    private List<@Valid NoteInput> noteInputs;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "note_tags", inverseJoinColumns = { @JoinColumn(name = "tag_id", referencedColumnName = "id", nullable = false) })
     @Nullable
+    // TODO: make this a list
     private Set<@Valid Tag> tags;
 
     @ManyToOne

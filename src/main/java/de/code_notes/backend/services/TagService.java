@@ -31,13 +31,13 @@ public class TagService extends AbstractService<Tag> {
      * 
      * @param note to update the tags and tag's list for
      * @param appUser referenced by the {@code note}
-     * @throws IllegalStateException if {@code note} or {@code appUser} is {@code null}
+     * @throws IllegalArgumentException if {@code note} or {@code appUser} is {@code null}
      */
     public void handleSaveNote(Note note, AppUser appUser) {
         
         // case: falsy param
         if (note == null || appUser == null)
-            throw new IllegalStateException("Failed to handle saving a note. 'note' or 'appUser' are null");
+            throw new IllegalArgumentException("Failed to handle saving a note. 'note' or 'appUser' are null");
         
         // contains only tags from db
         Set<Tag> tags = getOrCreateNoteTags(note, appUser);
@@ -53,13 +53,13 @@ public class TagService extends AbstractService<Tag> {
      * 
      * @param note to update tags for
      * @return updated {@code note} tags or {@code null} if {@code note.tags} is {@code null}
-     * @throws IllegalStateException if {@code note} or {@code appUser} is {@code null}
+     * @throws IllegalArgumentException if {@code note} or {@code appUser} is {@code null}
      */
     private Set<Tag> getOrCreateNoteTags(Note note, AppUser appUser) {
 
         // case: falsy param
         if (note == null || appUser == null)
-            throw new IllegalStateException("Failed to save or get note tags. 'note' or 'appUser' are null");
+            throw new IllegalArgumentException("Failed to save or get note tags. 'note' or 'appUser' are null");
 
         // case: has no tags
         if (note.getTags() == null)
