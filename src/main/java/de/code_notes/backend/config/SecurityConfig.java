@@ -27,19 +27,22 @@ import lombok.extern.log4j.Log4j2;
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(securedEnabled = true)
 @Log4j2
 public class SecurityConfig {
 
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
+
+    @Value("${FRONTEND_BASE_URL_WWW}")
+    private String FRONTEND_BASE_URL_WWW;
     
     /**
      * Possible values:<p>
      * 
      * - {@code prod}: login required, no develpment endpoints like swagger permitted, csrf enabled <p>
      * - {@code qa}: login required, some develpment endpoints like swagger permitted, csrf disabled <p>
-     * - {@code dev}: no login required, all development endpoints like swagger permitted, scrf disabled
+     * - {@code dev}: no login required, all development endpoints like swagger permitted, csrf disabled
      */
     @Value("${ENV}")
     private String ENV;
@@ -72,32 +75,37 @@ public class SecurityConfig {
 
         // case: qa or prod
         } else {
+            // csrf
             http.csrf(csrf -> csrf
-                // allow critical method types for paths prior to login
                 .ignoringRequestMatchers(getRoutesPriorToLogin())
                 // load csrf token on every request
                 .csrfTokenRequestHandler(customCsrfTokenRequestAttributeHandler()));
 
-            // case: qa
             if (this.ENV.equalsIgnoreCase("qa"))
                 http.csrf(csrf -> csrf.disable());
 
+            // endpoints
             http.authorizeHttpRequests(request -> request
-                // permitt all endpoints prior to login
                 .requestMatchers(getRoutesPriorToLogin())
                     .permitAll()
-                // restrict all other endpoints
-                .requestMatchers("/**")
+                .anyRequest()
                     .authenticated());
 
+            // login
             http.formLogin(formLogin -> formLogin
-                .successHandler(new CustomAuthenticationSuccessHandler())
-                .failureHandler(new CustomAuthenticationFailureHandler()));
+                .successHandler(new CustomLoginSuccessHandler())
+                .failureHandler(new CustomLogoutFailureHandler()));
 
-            // logout successer url
-            // login successer url
+            // logout
+            http.logout(logout -> logout
+                .logoutSuccessHandler(new CustomLogoutSuccessHandler()));
+
+            // 401 (see "CustomExceptionHandler.java" for 403 handling)
+            http.exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint(new CustomUnAuthenticatedHandler()));
         }
 
+        // cors
         http.cors(cors -> cors
             .configurationSource(corsConfig()));
 
@@ -116,7 +124,7 @@ public class SecurityConfig {
     private CorsConfigurationSource corsConfig() {
 
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(this.FRONTEND_BASE_URL));
+        configuration.setAllowedOrigins(List.of(this.FRONTEND_BASE_URL, this.FRONTEND_BASE_URL_WWW));
         configuration.setAllowedMethods(List.of("GET", "POST", "UPDATE", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -136,6 +144,8 @@ public class SecurityConfig {
      * 
      * @return
      */
+    // TODO: does this make a csrf token required on get requests?
+        // add this to comment if so
     private CsrfTokenRequestAttributeHandler customCsrfTokenRequestAttributeHandler() {
 
         CsrfTokenRequestAttributeHandler handler = new CsrfTokenRequestAttributeHandler();
@@ -160,15 +170,17 @@ public class SecurityConfig {
         List<String> routesPriorLogin = new ArrayList<>(List.of(
             "/logout",
             "/login",
-            "/register",    
+            "/register",
             "/confirmAccount",
             "/resendConfirmationMailByToken",
             "/resendConfirmationMailByEmail"
         ));
 
-        // case: dev or qa env
-        if (!this.ENV.equalsIgnoreCase("prod"))
+        // case: dev or qa 
+        if (!"prod".equalsIgnoreCase(this.ENV)) {
             routesPriorLogin.addAll(getSwaggerPaths()); 
+            routesPriorLogin.add("/appUser/save");
+        }
 
         return routesPriorLogin.toArray(new String[routesPriorLogin.size()]);
     }

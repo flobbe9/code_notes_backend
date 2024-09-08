@@ -9,12 +9,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -47,7 +46,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(value = MethodArgumentNotValidException.class) 
     public ResponseEntity<CustomExceptionFormat> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
 
-        AtomicReference<String> message = new AtomicReference<>("at " + getExceptionPath());
+        AtomicReference<String> message = new AtomicReference<>("at " + Utils.getReqeustPath());
 
         logPackageStackTrace(exception, message.get());
 
@@ -85,7 +84,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(value = HandlerMethodValidationException.class) 
     public ResponseEntity<CustomExceptionFormat> handleException(HandlerMethodValidationException exception) {
 
-        AtomicReference<String> message = new AtomicReference<>("at " + getExceptionPath());
+        AtomicReference<String> message = new AtomicReference<>("at " + Utils.getReqeustPath());
 
         logPackageStackTrace(exception, message.get());
 
@@ -98,30 +97,26 @@ public class CustomExceptionHandler {
         return getResponse(BAD_REQUEST, message.get());
     }
 
+        
+    /**
+     * Set status to 403 with a simple message. Don't log error.
+     * 
+     * @param exception
+     * @return
+     */
+    @ExceptionHandler(value = AuthorizationDeniedException.class)
+    public ResponseEntity<CustomExceptionFormat> handleException(AuthorizationDeniedException exception) {
+
+        return getResponse(HttpStatus.FORBIDDEN, "Forbidden");
+    }
+
     
     @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<CustomExceptionFormat> handleResponseStatusException(Exception exception) {
+    public ResponseEntity<CustomExceptionFormat> handleException(Exception exception) {
 
         logPackageStackTrace(exception);
 
         return getResponse(INTERNAL_SERVER_ERROR, exception.getMessage());
-    }
-
-
-    /**
-     * @return the current url path relative to the base url. E.g. "/getById/"
-     */
-    private String getExceptionPath() {
-
-        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-                                                                .getRequest()
-                                                                .getServletPath();
-    }
-
-
-    private String formatTimestamp() {
-
-        return Utils.formatLocalDateTimeDefault(LocalDateTime.now());
     }
 
 
@@ -134,11 +129,11 @@ public class CustomExceptionHandler {
 
         return ResponseEntity.status(status.value())
                              .body(new CustomExceptionFormat(
-                                formatTimestamp(),
+                                Utils.formatLocalDateTimeDefault(LocalDateTime.now()),
                                 status.value(),
                                 message,
-                                getExceptionPath()
-                            ));    
+                                Utils.getReqeustPath()
+                            ));
     }
 
 

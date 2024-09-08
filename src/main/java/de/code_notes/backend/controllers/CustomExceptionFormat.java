@@ -1,15 +1,42 @@
 package de.code_notes.backend.controllers;
 
+import java.time.LocalDateTime;
+
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import de.code_notes.backend.helpers.Utils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 
 /**
- * Record defining the exception format this api returns when catching any Exception.
+ * Class defining the exception format this api returns when catching any Exception.
  * 
  * @since 0.0.1
  */
-public record CustomExceptionFormat(
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class CustomExceptionFormat {
 
-    String timestamp,
-    int status,
-    String message,
-    String path
-) {}
+    private String timestamp;
+
+    private int status;
+
+    private String message;
+
+    private String path;
+
+    
+    public CustomExceptionFormat(int status, String message) {
+
+        this.timestamp = Utils.formatLocalDateTimeDefault(LocalDateTime.now());
+        this.status = status;
+        this.message = message;
+        this.path = Utils.getReqeustPath();             
+    }
+}

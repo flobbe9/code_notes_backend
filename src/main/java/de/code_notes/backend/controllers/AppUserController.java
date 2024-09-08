@@ -39,6 +39,8 @@ public class AppUserController {
         responses = {
             @ApiResponse(responseCode = "200", description = "AppUser saved successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid appUser"),
+            @ApiResponse(responseCode = "401", description = "Not logged in"),
+            @ApiResponse(responseCode = "403", description = "Invalid csrf"),
             @ApiResponse(responseCode = "406", description = "Invalid appUser id"),
             @ApiResponse(responseCode = "409,", description = "AppUser's email in conflict with existing ones"),
             @ApiResponse(responseCode = "500", description = "AppUser null")
@@ -54,7 +56,9 @@ public class AppUserController {
     @Operation(
         description = "Delete", 
         responses = {
-            @ApiResponse(responseCode = "200", description = "AppUser deleted or did not exist anyway")
+            @ApiResponse(responseCode = "200", description = "AppUser deleted or did not exist anyway"),
+            @ApiResponse(responseCode = "401", description = "Not logged in"),
+            @ApiResponse(responseCode = "403", description = "Invalid csrf")
         }
     )
     public void delete(@RequestParam Long id) {
