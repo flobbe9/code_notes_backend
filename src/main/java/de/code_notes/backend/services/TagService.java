@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import de.code_notes.backend.abstracts.AbstractService;
 import de.code_notes.backend.entities.AppUser;
@@ -24,6 +25,9 @@ public class TagService extends AbstractService<Tag> {
     
     @Autowired
     private TagRepository tagRepository;
+
+    @Autowired 
+    private AppUserService appUserService;
 
 
     /**
@@ -117,5 +121,16 @@ public class TagService extends AbstractService<Tag> {
             if (tag.getNotes().isEmpty())
                 this.tagRepository.delete(tag);
         });
+    }
+    
+
+    /**
+     * Overload. Use the tags of the currently logged in app user
+     * @throws ResponseStatusException 401 if not logged in
+     * @throws IllegalStateException if the logged in principal is not of a handled type
+     */
+    public void removeOrphanTags() throws ResponseStatusException, IllegalStateException {
+
+        removeOrphanTags(this.appUserService.getCurrent());
     }
 }

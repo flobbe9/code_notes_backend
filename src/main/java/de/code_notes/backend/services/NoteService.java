@@ -115,26 +115,19 @@ public class NoteService extends AbstractService<Note> {
         return this.noteRepository.findById(id).orElse(null);
     }
 
-
-    /**
-     * Delete given note if not {@code null} (wont throw).
-     * 
-     * @param note
-     */
-    public void delete(@Nullable Note note) {
-
-        if (note != null)
-            this.noteRepository.delete(note);
-    }
-
-
+    
     /**
      * Delete note with given id if not {@code null} (wont throw).
      * 
-     * @param id
+     * @param id of the note to delete
      */
     public void delete(@Nullable Long id) {
 
-        this.delete(getById(id));
+        if (id == null)
+            return;
+
+        this.noteRepository.deleteById(id);
+
+        this.tagService.removeOrphanTags();
     }
 }
