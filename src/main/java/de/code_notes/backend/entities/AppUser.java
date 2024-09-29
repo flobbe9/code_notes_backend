@@ -22,7 +22,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Transient;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -46,7 +45,6 @@ import lombok.Setter;
 public class AppUser extends AbstractEntity implements UserDetails {
 
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "'email' cannot be blank")
     @Pattern(regexp = Utils.EMAIL_REGEX, message = "'email' does not match pattern")
     @Schema(example = "max.mustermann@domain.com")
     @EqualsAndHashCode.Include
@@ -66,14 +64,10 @@ public class AppUser extends AbstractEntity implements UserDetails {
     @Nullable
     private Set<@Valid Tag> tags;
 
-    @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "appUser", cascade = CascadeType.REMOVE)
     @Nullable
+    @JsonIgnore
     private List<@Valid Note> notes;
-
-    /** Will only be present for successful /login response  */
-    @Transient
-    @Nullable
-    private String csrfToken;
 
 
     @Override

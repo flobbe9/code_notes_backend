@@ -29,16 +29,19 @@ public class NoteController {
     private NoteService noteService;
 
     
-    // @GetMapping("/getAllByAppUser")
-    // @Operation(
-    //     responses = {
-    //         @ApiResponse(responseCode = "")
-    //     }
-    // )
-    // public Flux<Note> getAllByAppUser(@AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping("/getAllByAppUser")
+    @Operation(
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty)"),
+            @ApiResponse(responseCode = "401", description = "Not logged in")
+        }
+    )
+    // TODO: 
+        // add user permissions
+    public Flux<Note> getAllByAppUser(@AuthenticationPrincipal AppUser appUser) {
 
-    //     return Flux.fromIterable(this.noteService.getAllByAppUser((AppUser) userDetails));
-    // }
+        return Flux.fromIterable(this.noteService.getAllByAppUser(appUser));
+    }
 
 
     @PostMapping("/save")
@@ -52,9 +55,9 @@ public class NoteController {
             @ApiResponse(responseCode = "500", description = "Note is null")
         }
     )
-    public Mono<Note> save(@RequestBody @Valid Note note, @AuthenticationPrincipal UserDetails userDetails) {
+    public Mono<Note> save(@RequestBody @Valid Note note, @AuthenticationPrincipal AppUser appUser) {
 
-        return Mono.just(this.noteService.save(note, (AppUser) userDetails));
+        return Mono.just(this.noteService.save(note, appUser));
     }
 
     
