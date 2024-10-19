@@ -1,5 +1,6 @@
 package de.code_notes.backend.services;
 
+import static de.code_notes.backend.helpers.Utils.CONFIRM_ACCOUNT_PATH;
 import static de.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ public class AsyncService {
                 
                 The Code Notes Team
             """,
-            String.format(this.BASE_URL + "/appUser/confirm-account?token=" + confirmationToken.getToken())
+            String.format(this.BASE_URL + CONFIRM_ACCOUNT_PATH + "?token=" + confirmationToken.getToken())
         );
             
         String subject = "Confirm your Account | Code Notes";

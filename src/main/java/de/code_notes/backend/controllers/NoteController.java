@@ -26,7 +26,7 @@ public class NoteController {
     private NoteService noteService;
 
     
-    @GetMapping("/getAllByAppUser")
+    @GetMapping("/get-all-by-appUser")
     @Operation(
         responses = {
             @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty). AuthRequirements: LOGGED_IN"),

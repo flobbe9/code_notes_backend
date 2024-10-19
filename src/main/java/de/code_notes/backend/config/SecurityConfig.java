@@ -1,5 +1,8 @@
 package de.code_notes.backend.config;
 
+import static de.code_notes.backend.helpers.Utils.CONFIRM_ACCOUNT_PATH;
+import static de.code_notes.backend.helpers.Utils.LOGIN_PATH;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -175,9 +178,9 @@ public class SecurityConfig {
 
         List<String> routesPriorLogin = new ArrayList<>(List.of(
             "/logout",
-            "/login",
+            LOGIN_PATH,
             "/appUser/register",
-            "/appUser/confirm-account",
+            CONFIRM_ACCOUNT_PATH,
             "/appUser/resend-confirmation-mail"
         ));
 

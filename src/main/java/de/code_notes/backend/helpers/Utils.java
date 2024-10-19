@@ -73,9 +73,8 @@ public class Utils {
     public static final String OAUTH2_CLIENT_REGISTRATION_ID_GITHUB = "github";
     public static final String OAUTH2_CLIENT_REGISTRATION_ID_AZURE = "azure";
 
-    // TODO
-    // login /login
-    // confirm-account
+    public static final String LOGIN_PATH = "/login";
+    public static final String CONFIRM_ACCOUNT_PATH = "/app-user/confirm-account";
 
     /** 
      * At least <p>

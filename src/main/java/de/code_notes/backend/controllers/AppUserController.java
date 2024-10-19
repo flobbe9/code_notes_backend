@@ -1,5 +1,6 @@
 package de.code_notes.backend.controllers;
 
+import static de.code_notes.backend.helpers.Utils.LOGIN_PATH;
 import static de.code_notes.backend.helpers.Utils.isBlank;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
@@ -40,7 +41,7 @@ import reactor.core.publisher.Mono;
  * @since 0.0.1
  */
 @RestController
-@RequestMapping("/appUser")
+@RequestMapping("/app-user")
 public class AppUserController {
 
     @Value("${FRONTEND_BASE_URL}")
@@ -111,7 +112,8 @@ public class AppUserController {
         description = 
             """
                 Confirm both the confirmation token and the app user linked to given token value.
-                Will in any case redirect to frontend login url and (if error) append the respnose status code like this: http://localhost:3000/login/?error-status={statusCode}            """,
+                Will in any case redirect to frontend login url and (if error) append the respnose status code like this: http://localhost:3000/login/?error-status={statusCode}          
+            """,
         responses = {
             @ApiResponse(responseCode = "200", description = "Confirmed token and app user"),
             @ApiResponse(responseCode = "202", description = "App user or token confirmed already"),
@@ -123,7 +125,7 @@ public class AppUserController {
     )
     public void confirmAccount(@RequestParam Optional<String> token, HttpServletResponse response) throws IOException {
 
-        String redirectUrl = this.FRONTEND_BASE_URL + "/login";
+        String redirectUrl = this.FRONTEND_BASE_URL + LOGIN_PATH;
 
         try {
             if (isBlank(token.orElse(null)))
@@ -168,7 +170,7 @@ public class AppUserController {
     }
 
 
-    @GetMapping("/checkLoggedIn")
+    @GetMapping("/check-logged-in")
     @Operation(
         description = "Indicates whether the current session is still valid or not. AuthRequirements: NONE",
         responses = {
@@ -185,19 +187,18 @@ public class AppUserController {
     }
 
 
-    // @PostMapping("/getCurrent")
-    @GetMapping("/getCurrent")
+    @PostMapping("/get-current")
     @Operation(
         description = "Get the app user currently logged in from db. AuthRequirements: LOGGED_IN",
         responses = {
             @ApiResponse(responseCode = "200", description = "Returned the app user of the current session"),
             @ApiResponse(responseCode = "401", description = "Current session is invalid, user is not logged in"),
             @ApiResponse(responseCode = "403", description = "Invalid csrf"),
+            @ApiResponse(responseCode = "404", description = "Current app user not found in db")
         }
     )
     public Mono<AppUser> getCurrent(HttpServletRequest request) {
 
-        // return Mono.just(this.appUserService.getCurrentFromDb());
-        return Mono.just(this.appUserService.getCurrent());
+        return Mono.just(this.appUserService.getCurrentFromDb());
     }
 }
