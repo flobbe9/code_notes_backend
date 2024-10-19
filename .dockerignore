@@ -1,0 +1,12 @@
+### Gradle ###
+build/
+.gradle
+# gradle/
+# gradlew
+# gradlew.bat
+
+
+### Other ###
+.vscode/
+notes.md
+data.sql

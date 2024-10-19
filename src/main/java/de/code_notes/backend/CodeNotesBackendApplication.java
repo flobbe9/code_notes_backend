@@ -14,11 +14,17 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class CodeNotesBackendApplication {
 
+    /**
+     * NOTE: When adding methods that complement the environment, make sure to add those methods to the 
+     * {@code CodeNotesBackendApplicationTest.init()} method too.
+     *  
+     * @param args
+     */
 	public static void main(String[] args) {
         // call this first
         readAppEnvFile();
 
-        readEnvLocalFile();
+        readEnvSecretsFile();
 
 		SpringApplication.run(CodeNotesBackendApplication.class, args);
 	}
@@ -30,7 +36,7 @@ public class CodeNotesBackendApplication {
      * 
      * Blank values are interpreted as {@code null}
      */
-    private static void readAppEnvFile() {
+    public static void readAppEnvFile() {
         
         log.info("Reading app env...");
         
@@ -47,12 +53,12 @@ public class CodeNotesBackendApplication {
 
 
     /**
-     * Read .env.local file from root folder (same level as /src) and set key values as sys properties. 
+     * Read .env.secrets file from root folder (same level as /src) and set key values as sys properties. 
      * Wont override values from .env file.<p>
      * 
      * Blank values are interpreted as {@code null}
      */
-    private static void readEnvLocalFile() {
+    public static void readEnvSecretsFile() {
 
         String ENV = System.getenv("ENV");
 
@@ -60,10 +66,10 @@ public class CodeNotesBackendApplication {
         if ("prod".equals(ENV == null ? "" : ENV))
             return;
 
-        log.info("Reading local env...");
+        log.info("Reading secrets env...");
         
         try {
-            Utils.readEnvFile("./.env.local")
+            Utils.readEnvFile("./.env.secrets")
                 .entrySet()
                 .forEach(entry -> 
                     System.setProperty(entry.getKey(), entry.getValue()));

@@ -11,17 +11,34 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       TZ: Europe/Berlin
     command: --mysql-native-password=ON # see mysql_8.4._create_user.md for explanation
+    healthcheck:
+      test: mysqladmin ping -h db
+      start_period: 20s
+      interval: 5s
+      timeout: 5s
+      retries: 10
     
-  # api:
-  #   depends_on: 
-  #     - db
-  #   build: .
-  #   container_name: _dev_api
-  #   ports: 
-  #       - ${PORT}:${PORT}
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:mysql://db:${DB_PORT}/${DB_NAME}
-  #     SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-  #     SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-  #     SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-  #     TZ: Europe/Berlin
+  api:
+    depends_on: 
+      db: 
+        condition: service_healthy
+    build:
+      context: .
+      args:
+        API_NAME: ${API_NAME}
+        VERSION: ${VERSION}
+    container_name: dev_api
+    ports: 
+        - ${PORT}:${PORT}
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:${DB_PORT}/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+
+  maildev:
+    image: maildev/maildev
+    container_name: dev_maildev
+    ports: 
+        - ${MAIL_PORT}:${MAIL_PORT}
+        - 1080:1080
