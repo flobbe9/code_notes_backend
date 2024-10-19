@@ -54,7 +54,9 @@ public class MailService {
 
     
     /**
-     * Simple mail sending method. Uses 'spring.mail.username' property as sender mail.
+     * Simple mail sending method. Uses 'spring.mail.username' property as sender mail.<p>
+     * 
+     * Use {@link #getFilesAsAttachments(List)} if you want to convert your attachment list to {@code Map<String, InputStreamSource}
      * 
      * @param to reciever email address
      * @param from sender email address
@@ -103,31 +105,6 @@ public class MailService {
 
         sendMail(to, this.DEFAULT_SENDER_EMAIL, subject, text, html, inlines, attachments);
     }
-
-
-    // /**
-    //  * Overload.
-    //  * 
-    //  * @param to reciever email address
-    //  * @param subject of email
-    //  * @param text content of email
-    //  * @param html true if {@code text} is written as HTML, else false
-    //  * @param inlines map of <contentId, file>. {@code contentId} has to be referenced in the html document like this: 
-    //  *               {@code <img src="cid:contentId" />}
-    //  * @param attachments files to attach to email, optional
-    //  * @throws MessagingException 
-    //  */
-    // public void sendMail(String to, 
-    //                      String subject, 
-    //                      String text, 
-    //                      boolean html, 
-    //                      Map<String, File> inlines,
-    //                      @Nullable List<File> attachments
-    // ) throws MessagingException {
-
-    //     sendMail(to, subject, text, html, inlines, getFilesAsAttachments(attachments));
-    // }
-    
 
     /**
      * Create simple {@code mimeMessage} for mail sending method.
@@ -204,7 +181,7 @@ public class MailService {
      * @param files to convert
      * @return map of {@code <FileName, FileContent>}. The ByteArrayResource may be {@code null} in case of an exception
      */
-    private Map<String, InputStreamSource> getFilesAsAttachments(@Nullable List<File> files) {
+    public Map<String, InputStreamSource> getFilesAsAttachments(@Nullable List<File> files) {
 
         if (files == null)
             return null;
