@@ -42,6 +42,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/app-user")
+
 public class AppUserController {
 
     @Value("${FRONTEND_BASE_URL}")

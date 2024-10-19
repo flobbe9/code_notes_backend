@@ -55,7 +55,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
             );
             this.appUserService.logout();
             
-        } catch (Exception e) {
+        } catch (Exception e) { 
             Utils.writeToResponse(
                 response, 
                 HttpStatus.INTERNAL_SERVER_ERROR,
