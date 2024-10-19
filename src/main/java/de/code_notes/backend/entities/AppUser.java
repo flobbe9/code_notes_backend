@@ -2,11 +2,13 @@ package de.code_notes.backend.entities;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -23,7 +25,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.EqualsAndHashCode;
@@ -50,9 +51,15 @@ public class AppUser extends AbstractEntity implements UserDetails {
     @EqualsAndHashCode.Include
     private String email;
 
-    @Column(nullable = false)
-    @NotBlank(message = "'password' cannot be blank")
+    /** Unique, immutable id of an oauth2 user */
+    @Column(unique = true, updatable = false)
+    @Nullable
+    private String oauth2Id;
+
+    /** Null only for oauth2 users */
+    @Nullable
     @Schema(example = "Abc123,.")
+    // dont add a pattern here because it might not match the encrypted password, pattern is validated in "AppUserService.java"
     private String password;
 
     @Column(nullable = false)
@@ -60,14 +67,73 @@ public class AppUser extends AbstractEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private AppUserRole role;
 
+    /** Indicates whether the registration process has been completed or not. Default should be {@code false} */
+    private boolean enabled;
+
     @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @Nullable
-    private Set<@Valid Tag> tags;
+    private List<@Valid Tag> tags;
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.REMOVE)
     @Nullable
     @JsonIgnore
     private List<@Valid Note> notes;
+
+
+    public AppUser(String email, String password, AppUserRole role) {
+
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
+
+
+    /**
+     * Will give appuser a default role of {@code USER} since there's no specific role concept for oauth2 providers.
+     * 
+     * @param oauth2User retrieved from session
+     * @return an app user instance containing fields of given oauth user or {@code null} if {@code oauth2User} is {@code null}
+     */
+    public static AppUser getInstanceByDefaultOauth2User(@Nullable DefaultOAuth2User oauth2User) {
+
+        if (oauth2User == null)
+            return null;
+        
+        AppUser appUser = new AppUser();
+        appUser.setEmail(oauth2User.getAttribute("email"));
+        appUser.setRole(AppUserRole.USER);
+        appUser.setOauth2Id(oauth2User.getAttribute("sub"));
+        appUser.enable();
+
+        return appUser;
+    }
+
+
+    /**
+     * @param oauth2User retrieved from session
+     * @param emailUserInfo fetched in addition to default user user info contained in {@code oauth2User}. Contains
+     *                      the primary email for github user
+     * @return an app user instance containing fields of given oauth user or {@code null} if (and only if) {@code oauth2User} is {@code null}
+     */
+    public static AppUser getInstanceByGithubUser(DefaultOAuth2User oauth2User, Map<String, Object> emailUserInfo) {
+
+        if (oauth2User == null)
+            return null;
+
+        AppUser appUser = getInstanceByDefaultOauth2User(oauth2User);
+
+        // case: not a github session
+        if (emailUserInfo == null)
+            return appUser;
+
+        appUser.setEmail((String) emailUserInfo.get("email"));
+
+        Integer oauth2Id = oauth2User.getAttribute("id");
+        appUser.setOauth2Id(oauth2Id == null ? null : oauth2Id.toString());
+        appUser.enable();
+
+        return appUser;
+    }
 
 
     @Override
@@ -94,10 +160,9 @@ public class AppUser extends AbstractEntity implements UserDetails {
 
 
     @Override
-    @JsonIgnore 
     public boolean isEnabled() {
 
-        return true;
+        return this.enabled;
     }
     
 
@@ -122,5 +187,14 @@ public class AppUser extends AbstractEntity implements UserDetails {
     public boolean isCredentialsNonExpired() {
 
         return true;
+    }
+
+
+    /**
+     * Shorthand for {@code this.enabled = true}
+     */
+    public void enable() {
+
+        this.enabled = true;
     }
 }

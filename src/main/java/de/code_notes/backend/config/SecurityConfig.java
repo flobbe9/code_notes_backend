@@ -3,14 +3,13 @@ package de.code_notes.backend.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
@@ -21,13 +20,15 @@ import lombok.extern.log4j.Log4j2;
 
 
 /**
- * Configuration class to authentiacate requests.
+ * Configuration class to authentiacate requests.<p>
+ * 
+ * NOTE: this class autowires {@code AppUserService} via {@link CustomLoginSuccessHandler}.
  * 
  * @since 0.0.1
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = false)
 @Log4j2
 public class SecurityConfig {
 
@@ -46,6 +47,15 @@ public class SecurityConfig {
      */
     @Value("${ENV}")
     private String ENV;
+
+    @Autowired
+    private CustomLoginSuccessHandler customLoginSuccessHandler;
+    @Autowired
+    private CustomLogoutSuccessHandler customLogoutSuccessHandler;
+    @Autowired
+    private CustomLoginFailureHandler customLoginFailureHandler;
+    @Autowired
+    private CustomUnAuthenticatedHandler customUnAuthenticatedHandler;
 
 
     @PostConstruct
@@ -76,13 +86,14 @@ public class SecurityConfig {
         // case: qa or prod
         } else {
             // csrf
-            http.csrf(csrf -> csrf
-                .ignoringRequestMatchers(getRoutesPriorToLogin())
-                // load csrf token on every request
-                .csrfTokenRequestHandler(customCsrfTokenRequestAttributeHandler()));
-
             if (this.ENV.equalsIgnoreCase("qa"))
                 http.csrf(csrf -> csrf.disable());
+                
+            else
+                http.csrf(csrf -> csrf
+                    .ignoringRequestMatchers(getRoutesPriorToLogin())
+                    // load csrf token on every request
+                    .csrfTokenRequestHandler(customCsrfTokenRequestAttributeHandler()));
 
             // endpoints
             http.authorizeHttpRequests(request -> request
@@ -93,16 +104,20 @@ public class SecurityConfig {
 
             // login
             http.formLogin(formLogin -> formLogin
-                .successHandler(new CustomLoginSuccessHandler())
-                .failureHandler(new CustomLogoutFailureHandler()));
+                .successHandler(this.customLoginSuccessHandler)
+                .failureHandler(this.customLoginFailureHandler));
+
+            http.oauth2Login(oauth2login -> oauth2login
+                .successHandler(this.customLoginSuccessHandler)
+                .failureHandler(this.customLoginFailureHandler));
 
             // logout
             http.logout(logout -> logout
-                .logoutSuccessHandler(new CustomLogoutSuccessHandler()));
+                .logoutSuccessHandler(this.customLogoutSuccessHandler));
 
             // 401 (see "CustomExceptionHandler.java" for 403 handling)
             http.exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint(new CustomUnAuthenticatedHandler()));
+                .authenticationEntryPoint(this.customUnAuthenticatedHandler));
         }
 
         // cors
@@ -144,8 +159,6 @@ public class SecurityConfig {
      * 
      * @return
      */
-    // TODO: does this make a csrf token required on get requests?
-        // add this to comment if so
     private CsrfTokenRequestAttributeHandler customCsrfTokenRequestAttributeHandler() {
 
         CsrfTokenRequestAttributeHandler handler = new CsrfTokenRequestAttributeHandler();
@@ -153,14 +166,7 @@ public class SecurityConfig {
 
         return handler;
     }
-
     
-    @Bean
-    PasswordEncoder passwordEncoder() {
-
-        return new BCryptPasswordEncoder(10);
-    }
-
 
     /**
      * @return array of paths that a user should be able to access without having a valid session, e.g. "/api/userService/register"
@@ -170,16 +176,18 @@ public class SecurityConfig {
         List<String> routesPriorLogin = new ArrayList<>(List.of(
             "/logout",
             "/login",
-            "/register",
-            "/confirmAccount",
-            "/resendConfirmationMailByToken",
-            "/resendConfirmationMailByEmail"
+            "/appUser/register",
+            "/appUser/confirm-account",
+            "/appUser/resend-confirmation-mail"
         ));
 
         // case: dev or qa 
         if (!"prod".equalsIgnoreCase(this.ENV)) {
             routesPriorLogin.addAll(getSwaggerPaths()); 
-            routesPriorLogin.add("/appUser/save");
+            routesPriorLogin.addAll(List.of(
+                "/appUser/save",
+                "/test"
+            ));
         }
 
         return routesPriorLogin.toArray(new String[routesPriorLogin.size()]);

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import de.code_notes.backend.abstracts.AbstractRepository;
 import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.Tag;
+import jakarta.transaction.Transactional;
 
 
 /**
@@ -23,4 +24,9 @@ public interface TagRepository extends AbstractRepository<Tag> {
     Optional<Tag> findByNameAndAppUser(String name, AppUser appUser);
 
     List<Tag> findAllByAppUser(AppUser appUser);
+
+    @Transactional
+    void deleteByNotesIsNull();
+
+    boolean existsByNameAndAppUser(String name, AppUser appUser);
 }

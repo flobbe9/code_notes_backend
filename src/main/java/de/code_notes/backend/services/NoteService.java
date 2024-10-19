@@ -1,8 +1,12 @@
 package de.code_notes.backend.services;
 
+import static de.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
+
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import de.code_notes.backend.abstracts.AbstractService;
 import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.Note;
@@ -11,6 +15,9 @@ import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
 
 
+/**
+ * @since 0.0.1
+ */
 @Service
 @Log4j2
 public class NoteService extends AbstractService<Note> {
@@ -22,16 +29,18 @@ public class NoteService extends AbstractService<Note> {
     private TagService tagService;
 
     @Autowired
-    private NoteInputService noteInputService;
+    private AppUserService appUserService;
 
 
     /**
-     * @param appUser to find notes for
-     * @return all notes related to {@code appUser} or empty list
+     * @return
+     * @throws ResponseStatusException
      */
-    public List<Note> getAllByAppUser(AppUser appUser) {
+    public List<Note> getAllByCurrentAppUser() throws ResponseStatusException {
 
-        return this.noteRepository.findAllByAppUser(appUser);
+        AppUser appUser = this.appUserService.getCurrent();
+
+        return this.noteRepository.findAllByAppUserEmail(appUser.getEmail());
     }
 
 
@@ -41,63 +50,57 @@ public class NoteService extends AbstractService<Note> {
      * 
      * @param note to save. {@code appUser} field might not be present because of {@code @JsonIgnore}
      * @return saved {@code note}
+     * @throws ResponseStatusException if note is invalid or not logged in
      * @throws IllegalArgumentException if a param is {@code null}
      */
-    public Note save(Note note, AppUser appUser) {
+    @Override
+    public Note save(Note note) throws ResponseStatusException, IllegalArgumentException {
 
-        // case: falsy params
-        if (note == null || appUser == null)
-            throw new IllegalArgumentException("Failed to save note. 'note' or 'appUser' are null");
+        assertArgsNotNullAndNotBlankOrThrow(note);
 
-        // validate
-        super.validateAndThrow(note);
+        validateAndThrow(note);
 
-        // save related entites
-        note = saveRelatedEntities(note, appUser);
+        AppUser currentAppUser = this.appUserService.getCurrent();
 
-        // save
+        setIgnoredFields(note, currentAppUser);
+
+        this.tagService.handleSaveNote(note, currentAppUser);
+
         note = this.noteRepository.save(note);
 
-        // remove tags that are no longer related to any note
-        this.tagService.removeOrphanTags(appUser);
+        this.tagService.removeOrphanTags(currentAppUser);
 
         return note;
     }
+    
 
+    @Override
+    protected Note saveNew(Note note) throws ResponseStatusException, IllegalArgumentException {
+
+        return save(note);
+    }
+
+
+    @Override
+    protected Note update(Note note) throws ResponseStatusException, IllegalArgumentException {
+
+        return save(note);
+    }
+    
 
     /**
-     * Save the notes related entities. If the {@code note} does not exist in db yet, save it beforehand. Wont save the {@code note} after updating relations.
-     * <p>
-     * The note's existing inputs will be deleted and then saved as new entity.
+     * Get given {@code note} with fields annotated with {@code @JsonIgnore}.
      * 
-     * @param note to save the relations from
-     * @param appUser for the {@code note} to reference
-     * @return the {@code note} with the updated
-     * @throws IllegalArgumentException if a param is {@code null}
+     * @param note to complet (will be altered)
+     * @param appUser to set {@code note.appUser} to
+     * @return given {@code note}
+     * @throws IllegalArgumentException
      */
-    private Note saveRelatedEntities(Note note, AppUser appUser) {
-
-        // case: falsy params
-        if (note == null || appUser == null)
-            throw new IllegalArgumentException("Failed to save related entities of note. 'note' or 'appUser' are null");
-
-        // set app user since they're ignored in the note object
-        note.setAppUser(appUser);
-
-        Note oldNote = getById(note.getId());
+    private Note setIgnoredFields(Note note, AppUser appUser) throws IllegalArgumentException {
         
-        this.tagService.handleSaveNote(note, appUser);
+        assertArgsNotNullAndNotBlankOrThrow(note, appUser);
 
-        // case: note exists
-        if (oldNote != null) {
-            // delete old inputs
-            this.noteInputService.deleteAll(oldNote.getNoteInputs());
-
-        // case: note does not exist
-        } else 
-            note = this.noteRepository.save(note);
-
-        this.noteInputService.addNoteReferences(note);
+        note.setAppUser(appUser);
 
         return note;
     }

@@ -1,5 +1,7 @@
 package de.code_notes.backend.helpers;
 
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,10 +16,14 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -25,16 +31,20 @@ import java.util.concurrent.Executors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import de.code_notes.backend.controllers.CustomExceptionFormat;
+import de.code_notes.backend.controllers.CustomExceptionHandler;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -58,16 +68,27 @@ public class Utils {
     /** list of file names that should never be deleted during clean up processes */
     public static final Set<String> KEEP_FILES = Set.of(".gitkeep");
 
+    // these strings are defined in "application.yml" under {@code spring.security.oauth2.client.registration.[clientRegistrationId]}
+    public static final String OAUTH2_CLIENT_REGISTRATION_ID_GOOGLE = "google";
+    public static final String OAUTH2_CLIENT_REGISTRATION_ID_GITHUB = "github";
+    public static final String OAUTH2_CLIENT_REGISTRATION_ID_AZURE = "azure";
+
+    // TODO
+    // login /login
+    // confirm-account
+
     /** 
      * At least <p>
-     * - 8 characters, max 30,<p>
+     * - 8 characters, max 72 (bcrypt max),<p>
      * - one uppercase letter, <p>
      * - one lowercase letter,  <p>
      * - one number and <p>
      * - one of given special characters.
      */
-    public static final String PASSWORD_REGEX = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,;_!#$%&@€*+=?´`\"'\\/\\{|}()~^-])(.{8,30})$";
+    public static final String PASSWORD_REGEX = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,;_!#$%&@€*+=?´`\"'\\/\\{|}()~^-])(.{8,72})$";
     public static final String EMAIL_REGEX = "^[\\w\\-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+
+    public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSS";
 
     @Bean
     File verificationMail() {
@@ -327,7 +348,7 @@ public class Utils {
 
 
     /**
-     * Default format for a {@link LocalDateTime} with pattern {@code "yyyy-MM-dd HH:mm:ss:SS Z"}.
+     * Default format for a {@link LocalDateTime} with pattern {@code DEFAULT_DATE_TIME_FORMAT + " Z"}.
      * 
      * @param localDateTime to format
      * @return formatted string or {@code ""} if {@code localDateTime} is {@code null}
@@ -338,7 +359,7 @@ public class Utils {
             return "";
 
         return ZonedDateTime.now()
-                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS Z"));
+                            .format(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT + " Z"));
     }
 
 
@@ -356,12 +377,190 @@ public class Utils {
 
 
     /**
+     * @return the request currently beeing processed
+     */
+    public static HttpServletRequest getCurrentRequest() {
+
+        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+    }
+
+
+    /**
      * @return the path of the request currently beeing processed
      */
     public static String getReqeustPath() {
 
-        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-            .getRequest()
-            .getServletPath();
+        return getCurrentRequest().getServletPath();
+    }
+
+
+    /**
+     * Wont throw if given args itself is {@code null}. 
+     * 
+     * @param args to check
+     * @throws IllegalArgumentException
+     */
+    public static void assertArgsNotNullAndNotBlankOrThrow(Object ...args) throws IllegalArgumentException {
+
+        if (args == null)
+            return;
+
+        for (int i = 0; i < args.length; i++) 
+            if (assertNullOrBlank(args[i]))
+                throw new IllegalArgumentException("Mehtod arg null or blank at index " + i);
+    }
+
+
+    /**
+     * @param principal
+     * @throws ResponseStatusException 401
+     */
+    public static void assertPrincipalNotNullAndThrow401(Object principal) throws ResponseStatusException {
+
+        if (principal == null)
+            throw new ResponseStatusException(UNAUTHORIZED);
+    }
+
+
+    /**
+     * @param obj to check
+     * @return {@code true} if given {@code obj} is either {@code null} or (if instance of String) {@link #isBlank(String)}, else {@code false}
+     */
+    public static boolean assertNullOrBlank(Object obj) {
+
+        if (obj == null)
+            return true;
+
+        if (obj instanceof String)
+            return isBlank((String) obj);
+
+        return false;
+    }
+
+
+    public static void writeToResponse(HttpServletResponse response, Object object) throws JsonProcessingException, IOException, IllegalArgumentException {
+
+        assertArgsNotNullAndNotBlankOrThrow(response, object);
+
+        response.getWriter().write(getDefaultObjectMapper().writeValueAsString(object));
+    }
+    
+
+    /**
+     * Overload. Pass a {@link CustomExceptionFormat} with given {@code status} and {@code message} as {@code object} arg.
+     * 
+     * @param response
+     * @param status
+     * @param message
+     * @param doLog if {@code true} both {@code status} and {@code message} will be logged as exception
+     * @throws JsonProcessingException
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public static void writeToResponse(HttpServletResponse response, HttpStatus status, String message, boolean doLog) throws JsonProcessingException, IOException, IllegalArgumentException {
+
+        writeToResponse(response, new CustomExceptionFormat(status.value(), message));
+        response.setStatus(status.value());
+
+        if (doLog)
+            CustomExceptionHandler.logPackageStackTrace(new ResponseStatusException(status, message));
+    }
+
+    
+    /**
+     * Overload. Pass a {@link CustomExceptionFormat} with given {@code status} and {@code message} as {@code object} arg. <p>
+     * 
+     * Wont log.
+     * 
+     * @param response
+     * @param status
+     * @param message
+     * @throws JsonProcessingException
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public static void writeToResponse(HttpServletResponse response, HttpStatus status, String message) throws JsonProcessingException, IOException, IllegalArgumentException {
+
+        writeToResponse(response, status, message, false);
+    }
+
+
+    /**
+     * Redirect to given location.
+     * 
+     * @param response
+     * @param location the "Location" header value
+     * @throws IllegalArgumentException
+     * @throws IllegalStateException if given response is already committed
+     */
+    public static void redirect(HttpServletResponse response, String location) throws IllegalArgumentException, IllegalStateException {
+
+        assertArgsNotNullAndNotBlankOrThrow(response, location);
+
+        if (response.isCommitted())
+            throw new IllegalStateException("Response already committed");
+
+        response.setStatus(302);
+        response.setHeader("Location", location);
+    }
+
+
+    /**
+     * Wont throw.
+     * 
+     * @param httpStatus
+     * @return {@code false} for 4xx and 5xx status, else {@code true} (even if status is invalid)
+     */
+    public static boolean isHttpStatusAlright(int httpStatus) {
+
+        // case: status invalid, cannot make a decision
+        if (httpStatus < 100)
+            return true;
+
+        return httpStatus >= 100 && httpStatus <= 399;
+    }
+
+
+    /**
+     * Read given env file and get keys and values. Will strip quotes from values and not include any comments, empty lines or any '=' chars.<p>
+     * 
+     * Key values are expted to be separated with '='.
+     * 
+     * @param envFileName
+     * @return map of key values
+     * @throws IOException if file not found
+     */
+    public static Map<String, String> readEnvFile(String envFileName) throws IOException {
+
+        Map<String, String> envKeyValues = new HashMap<>();
+
+        try (Scanner scanner = new Scanner(new File(envFileName))) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+
+                // case: not a key value pair line
+                if (!line.contains("=") || line.startsWith("#"))
+                    continue;
+
+                int firstEqualsIndex = line.indexOf("=");
+                String key = line.substring(0, firstEqualsIndex);
+                String value = line.substring(firstEqualsIndex + 1);
+
+                // case: blank value
+                if (isBlank(value)) {
+                    envKeyValues.put(key, "");
+                    continue;
+                }
+
+                // remove quotes from value
+                Set<Character> quoteChars = Set.of('"', '\'');
+                if (quoteChars.contains(value.charAt(0)) || quoteChars.contains(value.charAt(value.length() - 1)))
+                    value = value.substring(1, value.length() - 1);
+
+                envKeyValues.put(key, value);
+            }
+        }
+
+        return envKeyValues;
     }
 }

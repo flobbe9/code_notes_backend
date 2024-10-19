@@ -1,7 +1,5 @@
 package de.code_notes.backend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import de.code_notes.backend.abstracts.AbstractEntity;
 import de.code_notes.backend.abstracts.NoteInputType;
 import jakarta.annotation.Nullable;
@@ -10,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,8 +39,4 @@ public class NoteInput extends AbstractEntity {
     @Column(nullable = false)
     @NotNull(message = "'type' cannot be null")
     private NoteInputType type;
-    
-    @ManyToOne
-    @JsonIgnore
-    private Note note;
 }

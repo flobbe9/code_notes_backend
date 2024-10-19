@@ -12,11 +12,9 @@ server:
         # enabled: ${SSL_ENABLED}
 
 spring:
+    ### App
     application:
         name: ${API_NAME}
-    autoconfigure:
-        # disable auto generated password
-        exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
     config:
         # include .env file
         import: optional:file:.env.local[.properties]
@@ -25,6 +23,42 @@ spring:
         ansi:
             enabled: ALWAYS
 
+    ### Security
+    autoconfigure:
+        # disable auto generated password
+        exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+    security:
+        oauth2:
+            client:
+                # redirect-uri is the spring default: /login/oauth2/code/{clientRegistrationId}
+                registration:
+                    google: 
+                        client-id: ${OAUTH2_CLIENT_ID_GOOGLE}
+                        client-secret: ${OAUTH2_CLIENT_SECRET_GOOGLE}
+                        scope: 
+                            - email
+                    github:
+                        client-id: ${OAUTH2_CLIENT_ID_GITHUB}
+                        client-secret: ${OAUTH2_CLIENT_SECRET_GITHUB}
+                        scope: 
+                            - user:email
+                    azure:
+                        client-id: ${OAUTH2_CLIENT_ID_AZURE}
+                        client-secret: ${OAUTH2_CLIENT_SECRET_AZURE}
+                        scope: 
+                            - openid
+                            - email
+                provider:
+                    google:
+                        issuer-uri: ${OAUTH2_ISSUER_URI_GOOGLE}
+                    github: 
+                        authorization-uri: ${OAUTH2_AUTHORIZATION_URI_GITHUB}
+                        token-uri: ${OAUTH2_TOKEN_URI_GITHUB}
+                        user-info-uri: ${OAUTH2_USER_INFO_URI_GITHUB}
+                    azure:
+                        issuer-uri: ${OAUTH2_ISSUER_URI_AZURE}
+                        
+                        
     ### DB
     datasource:
         url: jdbc:mysql://localhost:${DB_PORT}/${DB_NAME}
@@ -42,3 +76,16 @@ spring:
                 persistence:
                     validation:
                         mode: none 
+
+    ### Mail
+    mail:
+        host: ${MAIL_HOST}
+        port: ${MAIL_PORT}
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
+        properties:
+            mail:
+                smtp:
+                    auth: ${SMTP_AUTH_ENABLE}
+                    starttls:
+                        enable: ${MAIL_STARTTLS_ENABLE}

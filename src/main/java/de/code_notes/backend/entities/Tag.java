@@ -41,7 +41,12 @@ public class Tag extends AbstractEntity {
     private String name;
 
     @ManyToMany
-    @JoinTable(name = "note_tags", inverseJoinColumns = { @JoinColumn(name = "note_id", referencedColumnName = "id", nullable = false) })
+    @JoinTable(
+        name = "note_tags", 
+        inverseJoinColumns = { 
+            @JoinColumn(name = "note_id", referencedColumnName = "id", nullable = false) 
+        }
+    )
     @JsonIgnore
     private Set<Note> notes;
 

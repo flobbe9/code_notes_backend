@@ -17,5 +17,5 @@ import de.code_notes.backend.entities.Note;
 @Repository
 public interface NoteRepository extends AbstractRepository<Note> {
 
-    List<Note> findAllByAppUser(AppUser appUser);
+    List<Note> findAllByAppUserEmail(String email);
 }

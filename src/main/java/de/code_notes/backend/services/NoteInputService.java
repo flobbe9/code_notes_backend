@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
-import de.code_notes.backend.entities.Note;
 import de.code_notes.backend.entities.NoteInput;
 import de.code_notes.backend.repositories.NoteInputRepository;
 import jakarta.annotation.Nullable;
@@ -20,19 +19,6 @@ public class NoteInputService {
     @Autowired
     private NoteInputRepository noteInputRepository;
 
-
-    /**
-     * Set given {@code note} to {@code note.noteInputs} if not {@code null}.
-     * 
-     * @param note to update the plain text blocks {@code note} references for
-     */
-    public void addNoteReferences(@Nullable Note note) {
-
-        if (note == null || note.getNoteInputs() == null)
-            return;
-
-        note.getNoteInputs().forEach(noteInput -> noteInput.setNote(note));
-    }
 
         
     public boolean exists(@Nullable NoteInput noteInput) {

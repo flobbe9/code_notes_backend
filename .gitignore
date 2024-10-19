@@ -6,7 +6,8 @@ build/
 !**/src/test/**/build/
 
 ### Other ###
-*.md
 !README.md
 .vscode/
 .env.*
+notes.md
+test.*

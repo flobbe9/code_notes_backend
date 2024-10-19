@@ -18,6 +18,49 @@ abstract public class AbstractService<T extends AbstractEntity> {
 
     @Autowired
     private Validator validator;
+    
+    /**
+     * Save new or update given {@code entity} depending on whether it has an {@code id} or not.
+     * 
+     * @param entity to save
+     * @return saved {@code entity}, never {@code null}
+     * @throws ResponseStatusException if {@code entity} is invalid
+     * @throws IllegalArgumentException if {@code entity} is {@code null}
+     */
+    public T save(T entity) throws ResponseStatusException, IllegalArgumentException {
+
+        // case: falsy param
+        if (entity == null)
+            throw new IllegalArgumentException("Failed to save entity. 'entity' cannot be null");
+
+        // case: entity exists
+        if (entity.getId() != null)
+            return update(entity);
+
+        return saveNew(entity);
+    }
+
+
+    /**
+     * Validate and save given {@code entity}. Assuming that it has no {@code id}.
+     * 
+     * @param entity to save (will be altered)
+     * @return the saved {@code entity}, never {@code null}
+     * @throws ResponseStatusException if {@code entity} is invalid
+     * @throws IllegalArgumentException if {@code entity} is {@code null}
+     */
+    abstract protected T saveNew(T entity) throws ResponseStatusException, IllegalArgumentException;
+
+
+    /**
+     * Update and save given {@code entity}. Assuming that {@code id} is not {@code null}.
+     * 
+     * @param entity to update (will be altered)
+     * @return the updated {@code entity}, never {@code null}
+     * @throws ResponseStatusException if {@code entity} is invalid
+     * @throws IllegalArgumentException if {@code entity} is {@code null}
+     */
+    abstract protected T update(T entity) throws ResponseStatusException, IllegalArgumentException;
 
     
     /**

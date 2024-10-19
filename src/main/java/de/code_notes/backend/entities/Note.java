@@ -6,7 +6,6 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import de.code_notes.backend.abstracts.AbstractEntity;
-import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -34,7 +33,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor 
 public class Note extends AbstractEntity {
     
     @Column(nullable = false)
@@ -42,19 +41,22 @@ public class Note extends AbstractEntity {
     private String title;
 
     @OneToMany(
-        mappedBy = "note",
-        cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
+        cascade = { CascadeType.ALL },
         fetch = FetchType.EAGER,
         orphanRemoval = true
     )
+    @JoinColumn(name = "note_id")
     @Nullable
-    private List<@Valid NoteInput> noteInputs;
+    private List<@Valid @NotNull(message = "'note.noteInput' cannot be null") NoteInput> noteInputs;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "note_tags", inverseJoinColumns = { @JoinColumn(name = "tag_id", referencedColumnName = "id", nullable = false) })
+    @JoinTable(
+        name = "note_tags", 
+        inverseJoinColumns = { 
+            @JoinColumn(name = "tag_id", referencedColumnName = "id", nullable = false) 
+        })
     @Nullable
-    // TODO: make this a list
-    private Set<@Valid Tag> tags;
+    private List<@Valid @NotNull(message = "'note.tag' cannot be null") Tag> tags;
 
     @ManyToOne
     @JsonIgnore

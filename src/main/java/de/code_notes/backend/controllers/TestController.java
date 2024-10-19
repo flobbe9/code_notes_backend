@@ -1,32 +1,48 @@
 package de.code_notes.backend.controllers;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
-import jakarta.validation.constraints.Min;
+import de.code_notes.backend.entities.Note;
+import de.code_notes.backend.repositories.NoteRepository;
+import de.code_notes.backend.services.AppUserService;
 
 
 @RestController
 @RequestMapping("/test")
 public class TestController {
+
+    @Autowired
+    private NoteRepository noteRepository;
+
+    @Autowired
+    private AppUserService appUserService;
+
     
     @PostMapping
-    @Secured("ROLE_ADMIN")
-    public void test(@RequestParam @Min(value = 3, message = "lower than 3") Integer num) {
+    public Note test(@RequestBody Note note) {
+
+        note.setAppUser(this.appUserService.getCurrent());
+
+        // note = this.noteRepository.save(note);
+
+        // if (note.getNoteInputs() != null) 
+        //     for (NoteInput noteInput : note.getNoteInputs()) 
+        //         noteInput.setNote(note);
         
-        throw new ResponseStatusException(HttpStatus.OK, num.toString());
+        note = this.noteRepository.save(note);
+
+        return note;
     }
 
         
     @GetMapping
-    public String test() {
+    public void test() {
 
-        return "test";
+        this.appUserService.logout();
     }
 }

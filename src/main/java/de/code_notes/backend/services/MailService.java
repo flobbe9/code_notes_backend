@@ -42,8 +42,8 @@ public class MailService {
     @Value("${MAIL_STARTTLS_ENABLE}")
     private String MAIL_STARTTLS_ENABLE;
 
-    @Value("${APP_ENV}")
-    private String APP_ENV;
+    @Value("${ENV}")
+    private String ENV;
 
 
     @PostConstruct
@@ -105,28 +105,28 @@ public class MailService {
     }
 
 
-    /**
-     * Overload.
-     * 
-     * @param to reciever email address
-     * @param subject of email
-     * @param text content of email
-     * @param html true if {@code text} is written as HTML, else false
-     * @param inlines map of <contentId, file>. {@code contentId} has to be referenced in the html document like this: 
-     *               {@code <img src="cid:contentId" />}
-     * @param attachments files to attach to email, optional
-     * @throws MessagingException 
-     */
-    public void sendMail(String to, 
-                         String subject, 
-                         String text, 
-                         boolean html, 
-                         Map<String, File> inlines,
-                         @Nullable List<File> attachments
-    ) throws MessagingException {
+    // /**
+    //  * Overload.
+    //  * 
+    //  * @param to reciever email address
+    //  * @param subject of email
+    //  * @param text content of email
+    //  * @param html true if {@code text} is written as HTML, else false
+    //  * @param inlines map of <contentId, file>. {@code contentId} has to be referenced in the html document like this: 
+    //  *               {@code <img src="cid:contentId" />}
+    //  * @param attachments files to attach to email, optional
+    //  * @throws MessagingException 
+    //  */
+    // public void sendMail(String to, 
+    //                      String subject, 
+    //                      String text, 
+    //                      boolean html, 
+    //                      Map<String, File> inlines,
+    //                      @Nullable List<File> attachments
+    // ) throws MessagingException {
 
-        sendMail(to, subject, text, html, inlines, getFilesAsAttachments(attachments));
-    }
+    //     sendMail(to, subject, text, html, inlines, getFilesAsAttachments(attachments));
+    // }
     
 
     /**
@@ -240,7 +240,7 @@ public class MailService {
         props.put("mail.smtp.starttls.enable", this.MAIL_STARTTLS_ENABLE);
 
         // debug mode
-        // if (APP_ENV.equals("dev"))
+        // if (ENV.equals("dev"))
         //     props.put("mail.debug", "true");
     }
 }

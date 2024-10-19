@@ -3,17 +3,18 @@ package de.code_notes.backend.controllers;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,10 +32,9 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 @ControllerAdvice
-@Validated
 public class CustomExceptionHandler {
 
-    private final String indent = "     ";
+    private static final String INDENT = "     ";
 
 
     /**
@@ -53,7 +53,7 @@ public class CustomExceptionHandler {
         // log all violations
         exception.getAllErrors().forEach(error -> {
             message.set(error.getDefaultMessage());
-            log.error(this.indent + message);
+            log.error(INDENT + message);
         });
 
         return getResponse(BAD_REQUEST, message.get());
@@ -69,9 +69,12 @@ public class CustomExceptionHandler {
     @ExceptionHandler(value = ResponseStatusException.class)
     public ResponseEntity<CustomExceptionFormat> handleException(ResponseStatusException exception) {
 
-        logPackageStackTrace(exception, exception.getReason());
+        HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
+        String  message = Utils.isBlank(exception.getReason()) ? status.getReasonPhrase() : exception.getReason();
 
-        return getResponse(HttpStatus.valueOf(exception.getStatusCode().value()), exception.getReason());
+        logPackageStackTrace(exception, message);
+
+        return getResponse(status, message);
     }
 
 
@@ -91,10 +94,44 @@ public class CustomExceptionHandler {
         // log all violations
         exception.getAllErrors().forEach(error -> {
             message.set(error.getDefaultMessage());
-            log.error(this.indent + message);
+            log.error(INDENT + message);
         });
         
         return getResponse(BAD_REQUEST, message.get());
+    }
+
+        
+    /**
+     * Thrown when a http request fails with a 4xx status that was sent from the backend, e.g. using {@code RestClient}
+     * 
+     * @param exception
+     * @return
+     */
+    @ExceptionHandler(value = HttpClientErrorException.class)
+    public ResponseEntity<CustomExceptionFormat> handleException(HttpClientErrorException exception) {
+
+        logPackageStackTrace(exception);
+
+        CustomExceptionFormat customExceptionFormat = exception.getResponseBodyAs(CustomExceptionFormat.class);
+
+        return getResponse(exception.getStatusCode(), customExceptionFormat != null ? exception.getMessage() : exception.getStatusText());
+    }
+    
+        
+    /**
+     * Thrown when a http request fails with a 5xx status that was sent from the backend, e.g. using {@code RestClient}
+     * 
+     * @param exception
+     * @return
+     */
+    @ExceptionHandler(value = HttpServerErrorException.class)
+    public ResponseEntity<CustomExceptionFormat> handleException(HttpServerErrorException exception) {
+
+        logPackageStackTrace(exception);
+
+        CustomExceptionFormat customExceptionFormat = exception.getResponseBodyAs(CustomExceptionFormat.class);
+
+        return getResponse(exception.getStatusCode(), customExceptionFormat != null ? exception.getMessage() : exception.getStatusText());
     }
 
         
@@ -106,6 +143,8 @@ public class CustomExceptionHandler {
      */
     @ExceptionHandler(value = AuthorizationDeniedException.class)
     public ResponseEntity<CustomExceptionFormat> handleException(AuthorizationDeniedException exception) {
+
+        logPackageStackTrace(exception);
 
         return getResponse(HttpStatus.FORBIDDEN, "Forbidden");
     }
@@ -121,19 +160,54 @@ public class CustomExceptionHandler {
 
 
     /**
-     * @param status http response status code
-     * @param message
+     * @param statusCode http response status code
+     * @param message either a custom error message or (if null) the status reason phrase will be used
      * @return the default exception response
      */
-    private ResponseEntity<CustomExceptionFormat> getResponse(HttpStatus status, String message) {
+    public static ResponseEntity<CustomExceptionFormat> getResponse(int statusCode, @Nullable String message) {
 
-        return ResponseEntity.status(status.value())
-                             .body(new CustomExceptionFormat(
-                                Utils.formatLocalDateTimeDefault(LocalDateTime.now()),
-                                status.value(),
-                                message,
-                                Utils.getReqeustPath()
-                            ));
+        return getResponse(HttpStatus.valueOf(statusCode), message);
+    }
+
+
+    /**
+     * Will use the {@code status} reason phrase as message.
+     * 
+     * @param status http response status code
+     * @return the default exception response
+     */
+    public static ResponseEntity<CustomExceptionFormat> getResponse(HttpStatusCode status) {
+
+        return getResponse(HttpStatus.valueOf(status.value()), null);
+    }
+
+
+    /**
+     * @param status http response status code
+     * @param message either a custom error message or (if null) the status reason phrase will be used
+     * @return the default exception response
+     */
+    public static ResponseEntity<CustomExceptionFormat> getResponse(HttpStatusCode status, @Nullable String message) {
+
+        return getResponse(HttpStatus.valueOf(status.value()), message);
+    }
+
+
+    /**
+     * @param status http response status code
+     * @param message either a custom error message or (if null) the status reason phrase will be used
+     * @return the default exception response
+     */
+    public static ResponseEntity<CustomExceptionFormat> getResponse(HttpStatus status, @Nullable String message) {
+
+        return
+            ResponseEntity
+                .status(status.value())
+                .body(
+                    new CustomExceptionFormat(
+                        status.value(),
+                        Utils.isBlank(message) ? status.getReasonPhrase() : message
+                    ));
     }
 
 
@@ -146,18 +220,18 @@ public class CustomExceptionHandler {
      * @param exception to take the stack trace from
      * @param message exception message to log in front of stacktrace. May be null
      */
-    private void logPackageStackTrace(Exception exception, @Nullable String message) {
+    public static void logPackageStackTrace(Exception exception, @Nullable String message) {
         
         log.error(exception.getClass().getName() + ": " + (Utils.isBlank(message) ? "" : message));
 
         Arrays.asList(exception.getStackTrace()).forEach(trace -> {
             if (isPackageStackTrace(trace)) 
-                log.error(this.indent + "at " + trace.getClassName() + "." + trace.getMethodName() + "(" + trace.getFileName() + ":" + trace.getLineNumber() + ")");
+                log.error(INDENT + "at " + trace.getClassName() + "." + trace.getMethodName() + "(" + trace.getFileName() + ":" + trace.getLineNumber() + ")");
         });
     }
 
 
-    private void logPackageStackTrace(Exception exception) {
+    public static void logPackageStackTrace(Exception exception) {
 
         logPackageStackTrace(exception, exception.getMessage());
     }
@@ -169,7 +243,7 @@ public class CustomExceptionHandler {
      * @param trace to check
      * @return true if referenced class is in {@link CodeNotesBackendApplication} package
      */
-    private boolean isPackageStackTrace(StackTraceElement trace) {
+    private static boolean isPackageStackTrace(StackTraceElement trace) {
 
         return trace.getClassName().startsWith(CodeNotesBackendApplication.class.getPackage().getName());
     }       

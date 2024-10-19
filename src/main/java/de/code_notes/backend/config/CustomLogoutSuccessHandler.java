@@ -2,8 +2,10 @@ package de.code_notes.backend.config;
 
 import java.io.IOException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.stereotype.Component;
 
 import de.code_notes.backend.controllers.CustomExceptionFormat;
 import de.code_notes.backend.helpers.Utils;
@@ -17,13 +19,12 @@ import jakarta.servlet.http.HttpServletResponse;
  * 
  * @since 0.0.1
  */
+@Component
 public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
-        response.getWriter().write(Utils.getDefaultObjectMapper().writeValueAsString(
-            new CustomExceptionFormat(200, "Logged out")
-        ));
+        Utils.writeToResponse(response, HttpStatus.OK, "Logged out");
     }
 }

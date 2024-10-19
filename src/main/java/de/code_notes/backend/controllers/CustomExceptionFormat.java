@@ -2,8 +2,6 @@ package de.code_notes.backend.controllers;
 
 import java.time.LocalDateTime;
 
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import de.code_notes.backend.helpers.Utils;
 import lombok.AllArgsConstructor;

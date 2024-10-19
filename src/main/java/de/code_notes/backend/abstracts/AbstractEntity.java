@@ -2,6 +2,9 @@ package de.code_notes.backend.abstracts;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import de.code_notes.backend.helpers.Utils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
@@ -28,10 +31,31 @@ public abstract class AbstractEntity {
     private Long id;
     
     @Column(nullable = false)
+    @JsonFormat(pattern = Utils.DEFAULT_DATE_TIME_FORMAT)
     private LocalDateTime created;
 
     @Column(nullable = false)
+    @JsonFormat(pattern = Utils.DEFAULT_DATE_TIME_FORMAT)
     private LocalDateTime updated;
+
+
+    /**
+     * Copy all fields of {@link AbstractEntity} from given {@code abstractEntity} to {@code this}.
+     * 
+     * @param abstractEntity
+     * @return {@code this}
+     * @throws IllegalArgumentException
+     */
+    public AbstractEntity copyAbstractEntityFields(AbstractEntity abstractEntity) throws IllegalArgumentException {
+
+        Utils.assertArgsNotNullAndNotBlankOrThrow(abstractEntity);
+
+        this.id = abstractEntity.id;
+        this.created = abstractEntity.created;
+        this.updated = abstractEntity.updated;
+
+        return this;
+    }
 
 
     @PrePersist
