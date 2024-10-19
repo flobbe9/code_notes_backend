@@ -1,4 +1,8 @@
-# Using Oauth2 locally
+# Run
+- `docker-compose -f 'docker-compose.dev.yml up -d --build` 
+
+
+## Using Oauth2 locally
 - create an .env.secrets file at the project root (same level as /src)
 - use these keys:
 ```
