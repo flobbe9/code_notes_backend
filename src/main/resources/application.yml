@@ -17,7 +17,7 @@ spring:
         name: ${API_NAME}
     config:
         # include .env file
-        import: optional:file:.env.local[.properties]
+        import: optional:file:.env[.properties]
     output:
         # colored terminal
         ansi:
@@ -76,6 +76,9 @@ spring:
                 persistence:
                     validation:
                         mode: none 
+    sql:
+        init:
+            mode: always
 
     ### Mail
     mail:

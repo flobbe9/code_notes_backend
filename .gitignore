@@ -11,3 +11,4 @@ build/
 .env.*
 notes.md
 test.*
+data.sql
