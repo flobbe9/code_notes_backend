@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import de.code_notes.backend.helpers.Utils;
 import jakarta.annotation.Nullable;
@@ -14,6 +15,7 @@ import lombok.extern.log4j.Log4j2;
 
 @SpringBootApplication
 @EnableAsync
+@EnableScheduling
 @Log4j2
 public class CodeNotesBackendApplication {
 

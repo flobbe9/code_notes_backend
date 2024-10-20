@@ -7,6 +7,7 @@ import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.ConfirmationToken;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 
@@ -22,4 +23,7 @@ public interface ConfirmationTokenRepository extends AbstractRepository<Confirma
     void deleteByAppUser(AppUser appUser);
 
     Optional<ConfirmationToken> findByToken(String token);
+
+    @Transactional
+    void deleteByCreatedBefore(LocalDateTime minusMonths);
 }

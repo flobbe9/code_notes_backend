@@ -7,6 +7,8 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -127,5 +129,16 @@ public class ConfirmationTokenService extends AbstractService<ConfirmationToken>
             return null;
 
         return this.confirmationTokenRepository.findByToken(token).orElse(null);
+    }
+
+
+    /**
+     * Delete all confirmation tokens older than given {@code months} (by {@code created}).
+     * 
+     * @param months age of the tokens to be deleted in months
+     */
+    public void deleteOldConfirmationTokens(int months) {
+
+        this.confirmationTokenRepository.deleteByCreatedBefore(LocalDateTime.now().minusMonths(months));
     }
 }

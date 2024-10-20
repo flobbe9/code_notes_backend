@@ -1,6 +1,7 @@
 ### Gradle ###
 .gradle
 build/
+bin/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -8,7 +9,8 @@ build/
 ### Other ###
 !README.md
 .vscode/
-.env.*
+.env.local
+.env.secrets
 notes.md
 test.*
 data.sql
