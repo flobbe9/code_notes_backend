@@ -1,11 +1,14 @@
 package de.code_notes.backend;
 
+import static de.code_notes.backend.helpers.Utils.isBlank;
+
 import java.io.IOException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import de.code_notes.backend.helpers.Utils;
+import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -21,61 +24,52 @@ public class CodeNotesBackendApplication {
      * @param args
      */
 	public static void main(String[] args) {
-        // call this first
-        readAppEnvFile();
+        String ENV = System.getenv("ENV");
 
-        readEnvSecretsFile();
+        readEnvFiles("./.env.version", !"prod".equals(ENV) ? "./.env.secrets" : "");
 
 		SpringApplication.run(CodeNotesBackendApplication.class, args);
 	}
 
 
     /**
-     * Read .app_env file from root folder (same level as /src) and set key values as sys properties. 
-     * Wont override values from .env file.<p>
+     * Read other .env files and set key values as sys properties. 
+     * Wont override values from the actual .env file.<p>
      * 
-     * Blank values are interpreted as {@code null}
+     * Wont throw if an arg is blank.
+     * 
+     * @param envFileNames relative to root folder (same level as /src)
      */
-    public static void readAppEnvFile() {
-        
-        log.info("Reading app env...");
-        
-        try {
-            Utils.readEnvFile("./.app_env")
-                .entrySet()
-                .forEach(entry -> 
-                    System.setProperty(entry.getKey(), entry.getValue()));
+    public static void readEnvFiles(@Nullable String ...envFileNames) {
 
-        } catch (IOException e) {
-            log.warn("Failed to read env local file: " + e.getMessage());
-        }
+        if (envFileNames == null || envFileNames.length == 0)
+            return;
+
+        for (String envFileName : envFileNames)
+            readEnvFile(envFileName);
     }
 
 
     /**
-     * Read .env.secrets file from root folder (same level as /src) and set key values as sys properties. 
-     * Wont override values from .env file.<p>
-     * 
      * Blank values are interpreted as {@code null}
+     * 
+     * @param fileName relative to root folder (same level as /src)
      */
-    public static void readEnvSecretsFile() {
+    public static void readEnvFile(@Nullable String fileName) {
 
-        String ENV = System.getenv("ENV");
-
-        // case: is prod
-        if ("prod".equals(ENV == null ? "" : ENV))
+        if (isBlank(fileName))
             return;
-
-        log.info("Reading secrets env...");
+        
+        log.info(String.format("Reading '%s'...", fileName));
         
         try {
-            Utils.readEnvFile("./.env.secrets")
+            Utils.readEnvFile(fileName)
                 .entrySet()
                 .forEach(entry -> 
                     System.setProperty(entry.getKey(), entry.getValue()));
 
         } catch (IOException e) {
-            log.warn("Failed to read env local file: " + e.getMessage());
+            log.warn(String.format("Failed to read env file '%s': %s"), fileName, e.getMessage());
         }
     }
 }

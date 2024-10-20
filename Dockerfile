@@ -32,7 +32,7 @@ ENV JAR_FILE_NAME=${API_NAME}-${VERSION}.jar
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
 COPY ./.env ./.env
-COPY ./.app_env ./.app_env
+COPY ./.env.version ./.env.version
 COPY ./.env.secrets ./.env.secrets
 
 ENTRYPOINT java -jar ${JAR_FILE_NAME}

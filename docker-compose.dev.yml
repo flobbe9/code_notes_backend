@@ -26,7 +26,7 @@ services:
       context: .
       args:
         API_NAME: ${API_NAME}
-        VERSION: ${VERSION}
+        VERSION: 'dev'
     container_name: dev_api
     ports: 
         - ${PORT}:${PORT}

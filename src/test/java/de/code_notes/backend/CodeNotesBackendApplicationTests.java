@@ -9,10 +9,7 @@ class CodeNotesBackendApplicationTests {
 
     @BeforeAll
     static void init() {
-        // call this first
-        CodeNotesBackendApplication.readAppEnvFile();
-
-        CodeNotesBackendApplication.readEnvSecretsFile();
+        CodeNotesBackendApplication.readEnvFiles("./.env.version", "./.env.secrets");
     }
 
 	@Test
