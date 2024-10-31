@@ -42,15 +42,15 @@ public class AsyncService {
 
         String mailHtml = String.format(
             """
-                Dear user,
+                Thank you for signing up for Code Notes!
                 <br><br><br>
-                
-                thank you for signing up for Code Notes!
-                <br><br>
 
                 Please confirm your account by clicking the link below:
                 <br>
                 <a href='%s' target='_blank'>Confirm Account</a>
+                <br><br>
+
+                Your haven't registered for Code Notes? Then you can safely ignore this message.
                 <br><br><br>
 
                 Kind regards,

@@ -88,7 +88,7 @@ public class TagService extends AbstractService<Tag> {
 
                         // case: new tag
                         if (tagFromDb == null)
-                            return saveNew(tag);
+                            return saveNew(tag, appUser);
                             
                         // case: existing tag
                         else

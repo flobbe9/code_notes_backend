@@ -88,7 +88,7 @@ public class ConfirmationTokenService extends AbstractService<ConfirmationToken>
      * @param appUser
      * @throws IllegalStateException if {@code appUser} is null
      */
-    private void deleteByAppUser(AppUser appUser) throws IllegalStateException {
+    public void deleteByAppUser(AppUser appUser) throws IllegalStateException {
 
         assertArgsNotNullAndNotBlankOrThrow(appUser);
 

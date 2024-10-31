@@ -31,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
@@ -91,7 +92,7 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
     /**
      * Overload. Use principal from {@code SecurityContextHolder.getContext().getAuthentication().getPrincipal()}
      * 
-     * @return
+     * @return the app user currently logged in (not retrieving them from db) or throws (thus never {@code null})
      * @throws ResponseStatusException
      * @throws IllegalStateException
      */
@@ -109,7 +110,7 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
         AppUser current = getCurrent();
 
-        return (AppUser) Optional.of(loadUserByUsername(current.getEmail()))
+        return (AppUser) Optional.of(getByEmail(current.getEmail()))
             .orElseThrow(() -> 
                 new ResponseStatusException(NOT_FOUND, "No user with this email"));
     }
@@ -259,14 +260,18 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * Wont throw.
      * 
      * @return {@link AppUser} with given username from db or {@code null}
+     * @throws UsernameNotFoundException
      */
     @Override
-    public UserDetails loadUserByUsername(@Nullable String username) {
+    public UserDetails loadUserByUsername(@Nullable String username) throws UsernameNotFoundException {
 
         if (isBlank(username))
             return null;
 
-        return this.appUserRepository.findByEmail(username).orElse(null);
+        return this.appUserRepository
+            .findByEmail(username)
+            .orElseThrow(
+                () ->new UsernameNotFoundException("No app user with this username"));
     }
 
 
@@ -278,12 +283,13 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      */
     public AppUser getByEmail(@Nullable String email) {
 
-        UserDetails appUser = loadUserByUsername(email);
+        try {
+            UserDetails appUser = loadUserByUsername(email);
 
-        if (appUser == null)
+            return (AppUser) appUser;
+        } catch (UsernameNotFoundException e) {
             return null;
-
-        return (AppUser) appUser;
+        }
     }
     
 
@@ -310,6 +316,8 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         if (id == null)
             return;
 
+        deleteRelatedEntities(getById(id));
+
         this.appUserRepository.deleteById(id);
     }
 
@@ -321,7 +329,23 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
         AppUser appUser = getCurrent();
 
+        deleteRelatedEntities(appUser);
+
         this.appUserRepository.deleteByEmail(appUser.getEmail());
+    }
+
+
+    /**
+     * Delete entities that reference given {@code appUser}.
+     * 
+     * @param appUser
+     */
+    private void deleteRelatedEntities(@Nullable AppUser appUser) {
+
+        if (appUser == null)
+            return;
+
+        this.confirmationTokenService.deleteByAppUser(appUser);
     }
 
 

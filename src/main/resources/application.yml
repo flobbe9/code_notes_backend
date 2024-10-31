@@ -65,7 +65,6 @@ spring:
         username: ${SPRING_DATASOURCE_USERNAME}
         password: ${SPRING_DATASOURCE_PASSWORD}
     jpa:
-        database-platform: org.hibernate.dialect.MySQLDialect
         hibernate:
             ddl-auto: update
         defer-datasource-initialization: true

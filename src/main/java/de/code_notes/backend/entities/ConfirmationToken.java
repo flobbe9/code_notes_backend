@@ -38,7 +38,7 @@ public class ConfirmationToken extends AbstractEntity {
     private String token;
 
     @OneToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "app_user_id", nullable = false)
     @NotNull(message = "'appUser' cannot be null")
     @EqualsAndHashCode.Include
     private AppUser appUser;
