@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Lob;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,10 +27,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NoteInput extends AbstractEntity {
+
+    private static final int VALUE_MAX_LENGTH = 65_535;
     
     @Lob
-    @Column(nullable = false, length = 50_000)
+    @Column(nullable = false, length = VALUE_MAX_LENGTH)
     @NotNull(message = "'value' cannot be null (but blank though)")
+    @Size(max = VALUE_MAX_LENGTH, message = "'value' cannot have more charactes than " + VALUE_MAX_LENGTH)
     private String value;
         
     @Nullable

@@ -24,6 +24,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -72,12 +73,14 @@ public class AppUser extends AbstractEntity implements UserDetails {
 
     @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @Nullable
-    private List<@Valid Tag> tags;
+    @OrderColumn
+    private List<@Valid @NotNull(message = "'appUser.tag' cannot be null") Tag> tags;
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.REMOVE)
     @Nullable
     @JsonIgnore
-    private List<@Valid Note> notes;
+    @OrderColumn
+    private List<@Valid @NotNull(message = "'appUser.note' cannot be null") Note> notes;
 
 
     public AppUser(String email, String password, AppUserRole role) {

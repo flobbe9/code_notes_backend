@@ -1,7 +1,6 @@
 package de.code_notes.backend.entities;
 
 import java.util.List;
-import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -16,8 +15,10 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,9 +36,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor 
 public class Note extends AbstractEntity {
+
+    private static final int TITLE_MAX_LENGTH = 255;
     
     @Column(nullable = false)
     @NotNull(message = "'title' cannot be null (but blank though)")
+    @Size(max = TITLE_MAX_LENGTH, message = "'title' cannot have more charactes than " + TITLE_MAX_LENGTH)
     private String title;
 
     @OneToMany(
@@ -47,6 +51,7 @@ public class Note extends AbstractEntity {
     )
     @JoinColumn(name = "note_id")
     @Nullable
+    @OrderColumn
     private List<@Valid @NotNull(message = "'note.noteInput' cannot be null") NoteInput> noteInputs;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -56,6 +61,7 @@ public class Note extends AbstractEntity {
             @JoinColumn(name = "tag_id", referencedColumnName = "id", nullable = false) 
         })
     @Nullable
+    @OrderColumn
     private List<@Valid @NotNull(message = "'note.tag' cannot be null") Tag> tags;
 
     @ManyToOne

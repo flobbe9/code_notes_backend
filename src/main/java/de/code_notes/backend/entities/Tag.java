@@ -5,11 +5,6 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import de.code_notes.backend.abstracts.AbstractEntity;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -18,6 +13,11 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 /**
@@ -34,10 +34,12 @@ import jakarta.validation.constraints.Size;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class Tag extends AbstractEntity {
+
+    private static final int NAME_MAX_LENGTH = 50;
     
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = NAME_MAX_LENGTH)
     @NotBlank(message = "'name' cannot be blank")
-    @Size(max = 50, message = "'name' cannot have more charactes than 50")
+    @Size(max = NAME_MAX_LENGTH, message = "'name' cannot have more charactes than " + NAME_MAX_LENGTH)
     private String name;
 
     @ManyToMany
