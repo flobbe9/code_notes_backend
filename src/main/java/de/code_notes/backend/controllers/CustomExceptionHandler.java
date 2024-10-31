@@ -212,28 +212,42 @@ public class CustomExceptionHandler {
 
 
     /**
-     * Logs and formats parts of given stacktrace array that include classes of the {@link CodeNotesBackendApplication} package (e.g. com.example...) but will 
-     * exclude any other package (like java.lang etc.).
+     * Logs and formats parts of given {@code throwable} and it's cause that include classes of the {@link CodeNotesBackendApplication} package (e.g. com.example...) but will 
+     * exclude any other package (like java.lang etc.).<p>
      * 
      * Will log the message before the stacktrace if not null
      * 
-     * @param exception to take the stack trace from
-     * @param message exception message to log in front of stacktrace. May be null
+     * @param throwable to take the stack trace from
+     * @param message error message to log in front of stacktrace
      */
-    public static void logPackageStackTrace(Exception exception, @Nullable String message) {
+    public static void logPackageStackTrace(@Nullable Throwable throwable, @Nullable String message) {
         
-        log.error(exception.getClass().getName() + ": " + (Utils.isBlank(message) ? "" : message));
+        if (throwable == null)
+            return;
+        
+        log.error(throwable.getClass().getName() + ": " + (Utils.isBlank(message) ? "" : message));
 
-        Arrays.asList(exception.getStackTrace()).forEach(trace -> {
+        Arrays.asList(throwable.getStackTrace()).forEach(trace -> {
             if (isPackageStackTrace(trace)) 
                 log.error(INDENT + "at " + trace.getClassName() + "." + trace.getMethodName() + "(" + trace.getFileName() + ":" + trace.getLineNumber() + ")");
         });
+        
+        // log cause
+        if (throwable.getCause() != null) {
+            log.error("Caused by:");
+            logPackageStackTrace(throwable.getCause());
+        }
     }
 
 
-    public static void logPackageStackTrace(Exception exception) {
+    public static void main(String[] args) {
+        logPackageStackTrace(new IllegalStateException("message", new IllegalStateException("cause")));
+    }
 
-        logPackageStackTrace(exception, exception.getMessage());
+
+    public static void logPackageStackTrace(@Nullable Throwable throwable) {
+
+        logPackageStackTrace(throwable, throwable.getMessage());
     }
     
 
