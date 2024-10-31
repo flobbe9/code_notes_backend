@@ -44,9 +44,8 @@ public class SecurityConfig {
     /**
      * Possible values:<p>
      * 
-     * - {@code prod}: login required, no develpment endpoints like swagger permitted, csrf enabled <p>
-     * - {@code qa}: login required, some develpment endpoints like swagger permitted, csrf disabled <p>
-     * - {@code dev}: no login required, all development endpoints like swagger permitted, csrf disabled
+     * - {@code production}: login required, no develpment endpoints like swagger permitted, csrf enabled <p>
+     * - {@code development}: no login required, all development endpoints like swagger permitted, csrf disabled
      */
     @Value("${ENV}")
     private String ENV;
@@ -78,25 +77,20 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         
-        // case: dev
-        if (this.ENV.equalsIgnoreCase("dev")) {
+        // case: development
+        if (this.ENV.equalsIgnoreCase("development")) {
             http.csrf(csrf -> csrf.disable());
 
             http.authorizeHttpRequests(request -> request
                 .anyRequest()
                     .permitAll());
 
-        // case: qa or prod
+        // case: production
         } else {
-            // csrf
-            if (this.ENV.equalsIgnoreCase("qa"))
-                http.csrf(csrf -> csrf.disable());
-                
-            else
-                http.csrf(csrf -> csrf
-                    .ignoringRequestMatchers(getRoutesPriorToLogin())
-                    // load csrf token on every request
-                    .csrfTokenRequestHandler(customCsrfTokenRequestAttributeHandler()));
+            http.csrf(csrf -> csrf
+                .ignoringRequestMatchers(getRoutesPriorToLogin())
+                // load csrf token on every request
+                .csrfTokenRequestHandler(customCsrfTokenRequestAttributeHandler()));
 
             // endpoints
             http.authorizeHttpRequests(request -> request
@@ -104,24 +98,24 @@ public class SecurityConfig {
                     .permitAll()
                 .anyRequest()
                     .authenticated());
-
-            // login
-            http.formLogin(formLogin -> formLogin
-                .successHandler(this.customLoginSuccessHandler)
-                .failureHandler(this.customLoginFailureHandler));
-
-            http.oauth2Login(oauth2login -> oauth2login
-                .successHandler(this.customLoginSuccessHandler)
-                .failureHandler(this.customLoginFailureHandler));
-
-            // logout
-            http.logout(logout -> logout
-                .logoutSuccessHandler(this.customLogoutSuccessHandler));
-
-            // 401 (see "CustomExceptionHandler.java" for 403 handling)
-            http.exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint(this.customUnAuthenticatedHandler));
         }
+
+        // login
+        http.formLogin(formLogin -> formLogin
+            .successHandler(this.customLoginSuccessHandler)
+            .failureHandler(this.customLoginFailureHandler));
+
+        http.oauth2Login(oauth2login -> oauth2login
+            .successHandler(this.customLoginSuccessHandler)
+            .failureHandler(this.customLoginFailureHandler));
+
+        // logout
+        http.logout(logout -> logout
+            .logoutSuccessHandler(this.customLogoutSuccessHandler));
+
+        // 401 (see "CustomExceptionHandler.java" for 403 handling)
+        http.exceptionHandling(exceptionHandling -> exceptionHandling
+            .authenticationEntryPoint(this.customUnAuthenticatedHandler));
 
         // cors
         http.cors(cors -> cors
@@ -179,16 +173,17 @@ public class SecurityConfig {
         List<String> routesPriorLogin = new ArrayList<>(List.of(
             "/logout",
             LOGIN_PATH,
-            "/appUser/register",
+            "/app-user/register",
             CONFIRM_ACCOUNT_PATH,
-            "/appUser/resend-confirmation-mail"
+            "/app-user/resend-confirmation-mail",
+            "/app-user/check-logged-in"
         ));
 
-        // case: dev or qa 
-        if (!"prod".equalsIgnoreCase(this.ENV)) {
+        // case: development
+        if ("development".equalsIgnoreCase(this.ENV)) {
             routesPriorLogin.addAll(getSwaggerPaths()); 
             routesPriorLogin.addAll(List.of(
-                "/appUser/save",
+                "/app-user/save",
                 "/test"
             ));
         }

@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.Note;
 import de.code_notes.backend.repositories.NoteRepository;
 import de.code_notes.backend.services.AppUserService;
@@ -41,8 +43,8 @@ public class TestController {
 
         
     @GetMapping
-    public void test() {
+    public AppUser test() {
 
-        this.appUserService.logout();
+        return new AppUser();
     }
 }

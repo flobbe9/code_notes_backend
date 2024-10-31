@@ -217,7 +217,7 @@ public class MailService {
         props.put("mail.smtp.starttls.enable", this.MAIL_STARTTLS_ENABLE);
 
         // debug mode
-        // if (ENV.equals("dev"))
+        // if (ENV.equals("development"))
         //     props.put("mail.debug", "true");
     }
 }

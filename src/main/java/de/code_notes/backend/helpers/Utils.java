@@ -12,7 +12,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -408,6 +411,23 @@ public class Utils {
             if (assertNullOrBlank(args[i]))
                 throw new IllegalArgumentException("Mehtod arg null or blank at index " + i);
     }
+    
+
+    /**
+     * @param args to check
+     * @return {@code false} if at least one arg is {@code null} or blank (will stop iterating), else {@code true}
+     */
+    public static boolean assertArgsNotNullAndNotBlank(Object ...args) throws IllegalArgumentException {
+
+        if (args == null)
+            return true;
+
+        for (int i = 0; i < args.length; i++) 
+            if (assertNullOrBlank(args[i]))
+                return false;
+
+        return true;
+    }
 
 
     /**
@@ -439,9 +459,16 @@ public class Utils {
 
     public static void writeToResponse(HttpServletResponse response, Object object) throws JsonProcessingException, IOException, IllegalArgumentException {
 
-        assertArgsNotNullAndNotBlankOrThrow(response, object);
+        assertArgsNotNullAndNotBlankOrThrow(response);
 
-        response.getWriter().write(getDefaultObjectMapper().writeValueAsString(object));
+        if (object == null)
+            throw new IllegalArgumentException("'object' cannot be null");
+
+        if (object instanceof String)
+            response.getWriter().write((String) object);
+
+        else
+            response.getWriter().write(getDefaultObjectMapper().writeValueAsString(object));
     }
     
 
@@ -481,6 +508,25 @@ public class Utils {
     public static void writeToResponse(HttpServletResponse response, HttpStatus status, String message) throws JsonProcessingException, IOException, IllegalArgumentException {
 
         writeToResponse(response, status, message, false);
+    }
+    
+    
+    /**
+     * Overload. Pass a {@link CustomExceptionFormat} with given {@code status} and {@code exception.message} as {@code object} arg. <p>
+     * 
+     * Will log.
+     * 
+     * @param response
+     * @param status
+     * @param message
+     * @throws JsonProcessingException
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public static void writeToResponse(HttpServletResponse response, HttpStatus status, Exception exception) throws JsonProcessingException, IOException, IllegalArgumentException {
+
+        CustomExceptionHandler.logPackageStackTrace(exception);
+        writeToResponse(response, status, exception.getMessage());
     }
 
 
@@ -561,5 +607,52 @@ public class Utils {
         }
 
         return envKeyValues;
+    }
+
+
+    /**
+     * @param rawValue
+     * @return the hash (never {@code null})
+     * @throws IllegalArgumentException if {@code rawValue} is {@code null}
+     * @throws IllegalStateException should not happen
+     */
+    public static String hashSha256(String rawValue) throws IllegalArgumentException, IllegalStateException {
+
+        if (rawValue == null)
+            throw new IllegalArgumentException("'rawValue' cannot be null");
+
+        try {
+            MessageDigest cryptoHelper = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = cryptoHelper.digest(rawValue.getBytes(StandardCharsets.UTF_8));
+    
+            return bytesToHex(hashBytes);
+
+        // should not happen
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+
+    /**
+     * @param bytes
+     * @return a concatenated string of each byte converted to hex
+     * @throws IllegalArgumentException if bytes is {@code null}
+     */
+    public static String bytesToHex(byte[] bytes) throws IllegalArgumentException {
+
+        assertArgsNotNullAndNotBlankOrThrow(bytes);
+
+        StringBuilder hexString = new StringBuilder(2 * bytes.length);
+
+        for (int i = 0; i < bytes.length; i++) {
+            String hex = Integer.toHexString(0xff & bytes[i]);
+            if(hex.length() == 1) 
+                hexString.append('0');
+            
+            hexString.append(hex);
+        }
+        
+        return hexString.toString();
     }
 }

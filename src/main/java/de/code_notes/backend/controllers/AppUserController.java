@@ -10,9 +10,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -175,16 +173,12 @@ public class AppUserController {
     @Operation(
         description = "Indicates whether the current session is still valid or not. AuthRequirements: NONE",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Current session is valid, user is logged in"),
-            @ApiResponse(responseCode = "401", description = "Current session is invalid, user is not logged in")
+            @ApiResponse(responseCode = "200", description = "In any case. Returns true if is logged in, else false"),
         }
     )
-    public Mono<ResponseEntity<CustomExceptionFormat>> checkLoggedIn() {
+    public Mono<Boolean> checkLoggedIn(Authentication authentication) {
 
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal() == null ?
-            Mono.just(CustomExceptionHandler.getResponse(HttpStatus.UNAUTHORIZED))
-            :
-            Mono.just(CustomExceptionHandler.getResponse(HttpStatus.OK, "Logged in"));
+        return Mono.just(authentication != null);
     }
 
 

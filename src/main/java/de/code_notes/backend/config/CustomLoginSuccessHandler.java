@@ -3,6 +3,7 @@ package de.code_notes.backend.config;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -12,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import de.code_notes.backend.helpers.Utils;
 import de.code_notes.backend.services.AppUserService;
+import de.code_notes.backend.services.Oauth2Service;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,10 +29,20 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Autowired
     private AppUserService appUserService;
-    
+
+    @Autowired
+    private Oauth2Service oauth2Service;
+
+    @Value("${FRONTEND_BASE_URL}")
+    private String FRONTEND_BASE_URL;
+
+    @Value("${CSRF_TOKEN_QUERY_PARAM}")
+    private String CSRF_TOKEN_QUERY_PARAM;    
+
 
     /**
-     * Save oauth2 user and write csrf token to resopnse output.<p>
+     * Save oauth2 user. If is normal login write csrf token to resopnse output. If is oauth2 login
+     * append csrf token as query param and redirect to frontend start page.<p>
      * 
      * Will logout if error.
      */
@@ -38,30 +50,27 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         try {
+            // save user
             this.appUserService.saveCurrentOauth2(authentication.getPrincipal());
 
+            // retrieve csrf
             CsrfToken csrfToken = getCsrfTokenByHttpRequest(request);
+            String csrfTokenValue = csrfToken == null ? "" : csrfToken.getToken();
             
-            // case: csrf not disabled
-            if (csrfToken != null)
-                Utils.writeToResponse(response, csrfToken.getToken());
+            // case: oauth2
+            if (this.oauth2Service.isOauth2Session(authentication.getPrincipal()))
+                Utils.redirect(response, this.FRONTEND_BASE_URL + "/?%s=%s".formatted(this.CSRF_TOKEN_QUERY_PARAM, csrfTokenValue));
+
+            // case: normal login
+            else
+                Utils.writeToResponse(response, csrfTokenValue);
 
         } catch (ResponseStatusException e) {
-            Utils.writeToResponse(
-                response, 
-                HttpStatus.valueOf(e.getStatusCode().value()), 
-                "Login failed. " + e.getMessage(), 
-                true
-            );
+            Utils.writeToResponse(response, HttpStatus.valueOf(e.getStatusCode().value()), e);
             this.appUserService.logout();
             
-        } catch (Exception e) { 
-            Utils.writeToResponse(
-                response, 
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Login failed. " + e.getMessage(), 
-                true
-            );
+        } catch (Exception e) {
+            Utils.writeToResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, e);
             this.appUserService.logout();
         }
     }
