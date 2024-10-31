@@ -27,7 +27,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -42,13 +41,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class AppUser extends AbstractEntity implements UserDetails {
 
-    @Column(nullable = false, unique = true)
-    @Pattern(regexp = Utils.EMAIL_REGEX, message = "'email' does not match pattern")
+    @Column(nullable = false)
+    @Pattern(regexp = Utils.EMAIL_REGEX, message = "'email' does not match pattern") // includes "notBlank"
     @Schema(example = "max.mustermann@domain.com")
-    @EqualsAndHashCode.Include
     private String email;
 
     /** Unique, immutable id of an oauth2 user */
@@ -68,6 +65,7 @@ public class AppUser extends AbstractEntity implements UserDetails {
     private AppUserRole role;
 
     /** Indicates whether the registration process has been completed or not. Default should be {@code false} */
+    @JsonIgnore
     private boolean enabled;
 
     @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
@@ -155,11 +153,15 @@ public class AppUser extends AbstractEntity implements UserDetails {
     @JsonIgnore
     public String getUsername() {
 
+        if (this.oauth2Id != null)
+            return this.oauth2Id;
+
         return this.email;
     }
 
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
 
         return this.enabled;

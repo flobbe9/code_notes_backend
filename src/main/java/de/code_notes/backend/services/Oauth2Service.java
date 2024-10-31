@@ -48,6 +48,19 @@ public class Oauth2Service {
 
         return principal != null && principal instanceof DefaultOAuth2User;
     }
+    
+
+    /**
+     * Indicates whether the current session has been created using oauth2 (e.g. login with google)
+     * 
+     * @return 
+     */
+    public boolean isOauth2Session() {
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return principal != null && principal instanceof DefaultOAuth2User;
+    }
 
 
     /**
