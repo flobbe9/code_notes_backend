@@ -1,0 +1,149 @@
+<!-- 
+    NOTE: don't use the percent sign because String.format() is used
+    
+    Replacement strings in order:
+    - frontend start page url
+    - confirm link
+    - frontend data policy link
+    - frontend about link
+
+    Expected inlines:
+    - faviconWithLabel.png
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Confirm your account | Code Notes</title>
+
+        <style>
+            /* Global */
+            :root {
+                --accentColor: orange;
+                --matteBlue: rgb(21, 1, 70);
+            }
+
+            html {
+                font-family: sans-serif;
+            }
+
+            body {
+                margin: 0;
+            }
+
+            /* Nav */
+            nav {
+                background-color: var(--matteBlue);
+                color: white;
+                display: flex;
+                min-height: 66px;
+                padding: 10px;
+            }
+
+            .iconLabel {
+                font-size: 1.2em;
+                color: var(--accentColor);
+            }
+
+            code {
+                color: white;
+            }
+
+            /* Main */
+            main {
+                display: flex;
+                justify-content: center;
+            }
+
+            .mainContent {
+                margin: 40px 0;
+                width: 50vw;
+            }
+
+            .confirmButton {
+                background-color: var(--matteBlue);
+                border: none;
+                color: white !important;
+                border-radius: 3px;
+                padding: 10px 15px;
+            }
+
+            /* Footer */
+            footer {
+                background-color: white;
+                border-top: 2px solid var(--matteBlue);
+                bottom: 0;
+                color: var(--matteBlue);
+                height: 60px;
+                position: absolute;
+                width: 100vw;
+            }
+
+            /* Helpers */
+            .flex {
+                display: flex;
+                align-items: center;
+            }
+
+            .hover {
+                transition: 0.15s;
+            }
+            .hover:hover {
+                cursor: pointer;
+                opacity: 0.7;
+            }
+            
+            .simpleLink {
+                color: currentColor;
+                text-decoration: none;
+            }
+
+            .mx-3 {
+                margin: 0 1em;
+            }
+
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <nav>
+                <a href="%s" class="flex hover simpleLink" target="_blank">
+                    <img src="cid:faviconWithLabel" class="faviconWithLabel" alt="favicon" height=45 />
+                </a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="mainContent">
+                Thank you for signing up for Code Notes!
+                <br><br><br>
+
+                Please confirm your E-Mail address:
+                <br><br>
+                <a href='%s' class="simpleLink" target='_blank'>
+                    <button class="confirmButton hover">
+                        Confirm
+                    </button>
+                </a>
+                <br><br><br><br>
+
+                Your haven't registered for Code Notes? Then you can safely ignore this message.
+                <br><br><br>
+
+                Kind regards,
+                <br><br>
+                
+                The Code Notes Team
+            </div>
+        </main>
+    </body>
+
+    <footer class="flex">
+        <a href="%s" class="hover simpleLink mx-3" target="_blank">Data policy</a>
+
+        <a href="%s" class="hover simpleLink" target="_blank">About</a>
+    </footer>
+</html>

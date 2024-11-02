@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -127,6 +128,28 @@ public class Utils {
 
             String str = stringBuilder.toString();
             return replaceOddChars(str);
+        }
+    }
+
+
+    /**
+     * Convert contents of input stream into a String using {@link Scanner}. Not sure what happens if the contents are not string like, e.g. a picture.
+     * 
+     * @param is to convert
+     * @return converted string
+     * @throws IllegalArgumentException
+     */
+    public static String fileToString(InputStream is) throws IllegalArgumentException {
+
+        assertArgsNotNullAndNotBlank(is);
+
+        try (Scanner scanner = new Scanner(is)) {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            while (scanner.hasNextLine()) 
+                stringBuilder.append(scanner.nextLine());
+            
+            return stringBuilder.toString();
         }
     }
 

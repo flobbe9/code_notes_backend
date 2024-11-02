@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,7 +74,7 @@ public class MailService {
                          String subject, 
                          String text, 
                          boolean html, 
-                         Map<String, File> inlines,
+                         Map<String, Map<InputStreamSource, String>> inlines,
                          @Nullable Map<String, InputStreamSource> attachments
     ) throws MessagingException {
         MimeMessage mimeMessage = createMimeMessage(to, from, subject, text, html, inlines, attachments);
@@ -99,7 +99,7 @@ public class MailService {
                          String subject, 
                          String text, 
                          boolean html, 
-                         Map<String, File> inlines,
+                         Map<String, Map<InputStreamSource, String>> inlines,
                          @Nullable Map<String, InputStreamSource> attachments
     ) throws MessagingException {
 
@@ -126,7 +126,7 @@ public class MailService {
         String subject, 
         String text, 
         boolean html, 
-        Map<String, File> inlines,
+        Map<String, Map<InputStreamSource, String>> inlines,
         Map<String, InputStreamSource> attachments
     ) throws MessagingException {
 
@@ -163,16 +163,23 @@ public class MailService {
     }
 
 
-    private void addInlines(@Nullable MimeMessageHelper helper, @Nullable Map<String, File> inlines) throws MessagingException {
+    /**
+     * Adds given inlines to givn helper.
+     * 
+     * @param helper
+     * @param inlines formatted like: <fileName, <fileContent, contentType>>
+     * @throws MessagingException
+     */
+    private void addInlines(@Nullable MimeMessageHelper helper, @Nullable Map<String, Map<InputStreamSource, String>> inlines) throws MessagingException {
 
         if (helper == null || inlines == null)
             return;
 
-        for (Entry<String, File> entry : inlines.entrySet()) {
-            String contentId = entry.getKey();
-            File file = entry.getValue();
+        for (Entry<String, Map<InputStreamSource, String>> topLevelEntry: inlines.entrySet()) {
+            String contentId = topLevelEntry.getKey();
 
-            helper.addInline(contentId, file);
+            for (Entry<InputStreamSource, String> secondLevelEntry : topLevelEntry.getValue().entrySet())
+                helper.addInline(contentId, secondLevelEntry.getKey(), secondLevelEntry.getValue());
         };
     }
 
@@ -181,7 +188,7 @@ public class MailService {
      * @param files to convert
      * @return map of {@code <FileName, FileContent>}. The ByteArrayResource may be {@code null} in case of an exception
      */
-    public Map<String, InputStreamSource> getFilesAsAttachments(@Nullable List<File> files) {
+    public static Map<String, InputStreamSource> getFilesAsAttachments(@Nullable List<File> files) {
 
         if (files == null)
             return null;
@@ -194,15 +201,49 @@ public class MailService {
 
                 // file bytes
                 file -> {
-                    try (FileInputStream fis = new FileInputStream(file)) {
-                        return new ByteArrayResource(fis.readAllBytes());
-                        
+                    try {
+                        return getFileAsAttachment(file);
+
                     } catch (IOException e) {
                         e.printStackTrace();
                         return null;
                     }
                 }
             ));
+    }
+
+
+    /**
+     * Converts given {@code file} to {@link InputStreamSource}.
+     * 
+     * @param file
+     * @return possibly {@code null}
+     * @throws IOException
+     */
+    public static InputStreamSource getFileAsAttachment(@Nullable File file) throws IOException {
+
+        if (file == null)
+            return null;
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return new ByteArrayResource(fis.readAllBytes());
+        }
+    }
+
+
+    /**
+     * Converts given {@code fileBytes} to {@link InputStreamSource}.
+     * 
+     * @param fileBytes
+     * @return possibly {@code null}
+     * @throws IOException
+     */
+    public static InputStreamSource getFileAsAttachment(@Nullable byte[] fileBytes) {
+
+        if (fileBytes == null)
+            return null;
+
+        return new ByteArrayResource(fileBytes);
     }
 
 

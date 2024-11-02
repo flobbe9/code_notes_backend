@@ -240,11 +240,6 @@ public class CustomExceptionHandler {
     }
 
 
-    public static void main(String[] args) {
-        logPackageStackTrace(new IllegalStateException("message", new IllegalStateException("cause")));
-    }
-
-
     public static void logPackageStackTrace(@Nullable Throwable throwable) {
 
         logPackageStackTrace(throwable, throwable.getMessage());
