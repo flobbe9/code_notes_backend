@@ -15,16 +15,14 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface AppUserRepository extends AbstractRepository<AppUser> {
     
-    boolean existsByEmail(String email);
-
     @Transactional
     void deleteByEmail(String email);
 
     Optional<AppUser> findByOauth2Id(String oauth2Id);
 
+    Optional<AppUser> findByEmail(String email);
+
     boolean existsByOauth2Id(String oauth2Id);
 
-    boolean existsByEmailAndOauth2IdIsNull(String email);
-
-    Optional<AppUser> findByEmailAndOauth2IdIsNull(String email);
+    boolean existsByEmail(String email);
 }

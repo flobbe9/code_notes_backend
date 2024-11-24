@@ -1,5 +1,7 @@
 package de.code_notes.backend.entities;
 
+import static de.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -43,13 +45,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AppUser extends AbstractEntity implements UserDetails {
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     @Pattern(regexp = Utils.EMAIL_REGEX, message = "'email' does not match pattern") // includes "notBlank"
     @Schema(example = "max.mustermann@domain.com")
     private String email;
 
     /** Unique, immutable id of an oauth2 user */
-    @Column(unique = true, updatable = false)
+    @Column(unique = true)
     @Nullable
     private String oauth2Id;
 
@@ -131,6 +133,17 @@ public class AppUser extends AbstractEntity implements UserDetails {
         appUser.enable();
 
         return appUser;
+    }
+
+
+    public AppUser copyOauth2Fields(AppUser oauth2AppUser) throws IllegalArgumentException {
+
+        assertArgsNotNullAndNotBlankOrThrow(oauth2AppUser);
+
+        this.email = oauth2AppUser.getEmail();
+        this.oauth2Id = oauth2AppUser.getOauth2Id();
+
+        return this;
     }
 
 

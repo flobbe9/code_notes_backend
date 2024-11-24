@@ -5,10 +5,10 @@ import static de.code_notes.backend.helpers.Utils.assertPrincipalNotNullAndThrow
 import static de.code_notes.backend.helpers.Utils.isBlank;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -106,19 +106,13 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @return the app user instance from db with same email as current user
      * @throws ResponseStatusException 401 if not logged in, 404 if the current app user does not exist in db
      */
-    public AppUser getCurrentFromDb(Object principal) throws ResponseStatusException {
+    public AppUser loadCurrentFromDb(Object principal) throws ResponseStatusException {
 
         AppUser current = getCurrent(principal);
 
-        AppUser currentFromDb = getByOauth2Id(current.getOauth2Id());
-        if (currentFromDb != null)
-            return currentFromDb;
-
-        currentFromDb = getByEmailIgnoreOauth2Users(current.getEmail());
-        if (currentFromDb != null)
-            return currentFromDb;
-            
-        throw new ResponseStatusException(NOT_FOUND, "No user with this oauth2Id or email");
+        return Optional.ofNullable(loadUser(current))
+            .orElseThrow(
+                () -> new ResponseStatusException(NOT_FOUND, "No user with this oauth2Id or email"));
     }
 
 
@@ -126,9 +120,9 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @return the app user instance from db with same email as current user
      * @throws ResponseStatusException 401 if not logged in, 404 if the current app user does not exist in db
      */
-    public AppUser getCurrentFromDb() throws ResponseStatusException {
+    public AppUser loadCurrentFromDb() throws ResponseStatusException {
 
-        return getCurrentFromDb(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        return loadCurrentFromDb(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 
     /**
@@ -163,11 +157,11 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
 
     /**
-     * Retrieves app user with by given {@code principal}'s oauth2Id and updates the app user with values of given {@code principal}.<p>
+     * Retrieves app user with given {@code principal}'s oauth2Id and updates the app user with values of given {@code principal}.
+     * If it's the first oauth2 login, either save {@code principal} as new appUser or, if the email address already existed, update that
+     * existing one with given {@code principal}. Either way enable the appUser.<p>
      * 
      * Validates given {@code principal} before saving (assuming an oauth2 session).<p>
-     * 
-     * Wont save given {@code principal} if nothing has changed.<p>
      * 
      * Wont do anything if not an oauth2 session or (wont throw either).<p>
      * 
@@ -184,29 +178,24 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         if (!this.oauth2Service.isOauth2Session(principal))
             return null;
 
-        AppUser sessionAppUser = getCurrent(principal);
+        AppUser oauth2AppUser = getCurrent(principal);
 
-        AppUser savedAppUser = getByOauth2Id(sessionAppUser.getOauth2Id());
-        
-        // case: already saved, transfer id to make sure app user is updated instead of saved new
-        if (savedAppUser != null)
-            sessionAppUser.copyAbstractEntityFields(savedAppUser);
-        
-        return save(sessionAppUser);
-        
+        AppUser existingOauth2AppUser = loadByOauth2Id(oauth2AppUser.getOauth2Id());
 
-        
-        // // case: new user
-        // if (savedAppUser == null)
-        //     return save(sessionAppUser);
+        // case: first oauth2 login
+        if (existingOauth2AppUser == null) {
+            // case: was already registered though, use that appUser
+            if (existsByEmail(oauth2AppUser))
+                existingOauth2AppUser = loadByEmail(oauth2AppUser.getEmail());
 
-        // // case: app user already saved and has not been updated
-        // if (sessionAppUser.getEmail().equals(savedAppUser.getEmail()))
-        //     return savedAppUser;
+            else
+                return save(oauth2AppUser);
+        }
 
-        // savedAppUser.setEmail(sessionAppUser.getEmail());
+        existingOauth2AppUser.copyOauth2Fields(oauth2AppUser);
+        existingOauth2AppUser.enable();
 
-        // return this.appUserRepository.save(savedAppUser);
+        return save(existingOauth2AppUser);
     }
 
 
@@ -222,25 +211,18 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
     @Override
     protected AppUser saveNew(AppUser appUser) throws IllegalArgumentException, ResponseStatusException {
 
-        // case: falsy param
-        if (appUser == null)
-            throw new IllegalArgumentException("Failed to save new appUser. 'appUser' cannot be null");
+        assertArgsNotNullAndNotBlankOrThrow(appUser);
 
-        // validate
         if (!this.oauth2Service.isOauth2Session())
             validateAndThrowIncludePassword(appUser);
         else
             validateAndThrow(appUser);
 
-        // duplicate check
-        if (!isUnique(appUser))
-            throw new ResponseStatusException(CONFLICT, "Failed to save new appUser. AppUser with this oauth2Id or email does already exist");
+        assertNotExistsOrThrow(appUser);
 
-        // encrypt password
         if (!this.oauth2Service.isOauth2Session())
             enryptPassword(appUser);
 
-        // save
         return this.appUserRepository.save(appUser);
     }
 
@@ -269,12 +251,15 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
         // case: no appUser with this id
         if (oldAppUser == null)
-            throw new ResponseStatusException(NOT_ACCEPTABLE, "Failed to update appUser. No appUser with given id.");
+            throw new ResponseStatusException(NOT_ACCEPTABLE, "Failed to update appUser. No appUser with given id");
 
         // case: did change email 
         if (!oldAppUser.getEmail().equals(appUser.getEmail())) 
-            if (!isUnique(appUser))
-                throw new ResponseStatusException(CONFLICT, "Failed to update appUser. AppUser with this oauth2Id or email does already exist");
+            assertNotExistsOrThrow(appUser);
+
+        // case: did change oauth2Id
+        if (!isBlank(oldAppUser.getOauth2Id()) && !oldAppUser.getOauth2Id().equals(appUser.getOauth2Id()))
+            throw new ResponseStatusException(NOT_ACCEPTABLE, "Failed to update appUser. 'oauth2Id' must not be changed");
 
         return this.appUserRepository.save(appUser);
     }
@@ -286,23 +271,30 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         if (isBlank(username))
             new UsernameNotFoundException("No app user with this blank username");
 
-        return this.appUserRepository
-            .findByOauth2Id(username)
-            .or(() -> Optional.of(getByEmailIgnoreOauth2Users(username)))
+        return Optional.ofNullable(loadByOauth2Id(username))
+            .or(() -> Optional.ofNullable(loadByEmail(username)))
             .orElseThrow(
                 () -> new UsernameNotFoundException("No app user with this username"));
     }
 
 
     /**
-     * Basically overloading {@link #loadUserByUsername(String)}. Wont throw
+     * Load given {@code appUser} from db.
      * 
-     * @param email
-     * @return
+     * @param appUser
+     * @return appUser with given oauth2Id or (if blank) email or {@code null} if not found
+     * @throws IllegalArgumentException
      */
-    public AppUser getByEmailIgnoreOauth2Users(@Nullable String email) {
+    public AppUser loadUser(AppUser appUser) throws IllegalArgumentException {
 
-        return this.appUserRepository.findByEmailAndOauth2IdIsNull(email).orElse(null);
+        assertArgsNotNullAndNotBlankOrThrow(appUser);
+
+        try {
+            return (AppUser) loadUserByUsername(isBlank(appUser.getOauth2Id()) ? appUser.getEmail() : appUser.getOauth2Id());
+
+        } catch (UsernameNotFoundException e) {
+            return null;
+        }
     }
     
 
@@ -310,12 +302,25 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @param oauth2Id
      * @return the user with given {@code oauth2Id} or {@code null} (wont throw)
      */
-    public AppUser getByOauth2Id(@Nullable String oauth2Id) {
+    public AppUser loadByOauth2Id(@Nullable String oauth2Id) {
 
         if (isBlank(oauth2Id))
             return null;
 
         return this.appUserRepository.findByOauth2Id(oauth2Id).orElse(null);
+    }
+        
+
+    /**
+     * @param email
+     * @return the user with given {@code email} or {@code null} (wont throw)
+     */
+    public AppUser loadByEmail(@Nullable String email) {
+
+        if (isBlank(email))
+            return null;
+
+        return this.appUserRepository.findByEmail(email).orElse(null);
     }
 
 
@@ -340,7 +345,7 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      */
     public void deleteCurrent() {
 
-        AppUser appUser = getCurrentFromDb();
+        AppUser appUser = loadCurrentFromDb();
 
         deleteRelatedEntities(appUser);
 
@@ -377,27 +382,14 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
     /**
      * @param appUser
-     * @return {@code true} if an app user with given {@code appUser.email} exists, {@code false} if not or is {@code null} (wont throw)
+     * @return {@code true} if given {@code appUser} exists by email
+     * @throws IllegalArgumentException
      */
-    public boolean existsByEmail(@Nullable AppUser appUser) {
+    public boolean existsByEmail(AppUser appUser) throws IllegalArgumentException {
 
-        if (appUser == null || appUser.getEmail() == null)
-            return false;
+        assertArgsNotNullAndNotBlankOrThrow(appUser, appUser.getEmail());
 
         return this.appUserRepository.existsByEmail(appUser.getEmail());
-    }
-
-
-    /**
-     * @param appUser
-     * @return {@code true} if given {@code appUser} exists by email AND has no oauth2Id
-     */
-    public boolean existsByEmailIgnoreOauth2Users(@Nullable AppUser appUser) {
-
-        if (appUser == null || appUser.getEmail() == null)
-            return false;
-
-        return this.appUserRepository.existsByEmailAndOauth2IdIsNull(appUser.getEmail());
     }
     
 
@@ -410,7 +402,7 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         if (appUser == null || appUser.getOauth2Id() == null)
             return false;
 
-        return this.appUserRepository.existsByEmail(appUser.getOauth2Id());
+        return this.appUserRepository.existsByOauth2Id(appUser.getOauth2Id());
     }
 
 
@@ -434,24 +426,23 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
 
     /**
-     * Indicates whether given app user is considered unique in db. Uses either {@code oauth2Id} or {@code email} as creiteria (in that order), but not both.
+     * Check that given {@code appUser} does not yet exist by any of their unique identifiers (email OR oauth2Id), throw otherwise. 
      * 
-     * @param appUser
-     * @return
-     * @throws IllegalArgumentException 
-     * @throws ResponseStatusException 406 if no criteria for the unique check is present
+     * @param appUser 
+     * @throws IllegalArgumentException
+     * @throws ResponseStatusException 409 if exists
      */
-    private boolean isUnique(AppUser appUser) throws IllegalArgumentException {
+    private void assertNotExistsOrThrow(AppUser appUser) throws IllegalArgumentException, ResponseStatusException {
 
         assertArgsNotNullAndNotBlankOrThrow(appUser);
 
-        if (appUser.getOauth2Id() != null)
-            return !existsByOauth2Id(appUser);
+        // case: registered normally
+        if (appUser.getOauth2Id() == null && existsByEmail(appUser))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "'appUser' already exists by email");
 
-        if (appUser.getEmail() != null)
-            return !existsByEmailIgnoreOauth2Users(appUser);
-
-        throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Failed to determine uniqueness of app user. Missing all unique fields");
+        // case: registered with oauth2
+        if (existsByOauth2Id(appUser) || existsByEmail(appUser))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "'appUser' already exists by email or oauth2Id");
     }
 
 
@@ -471,8 +462,7 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         // validate all class annotations
         validateAndThrow(appUser);
 
-        // validate password
-        if (!appUser.getPassword().matches(Utils.PASSWORD_REGEX))
+        if (isBlank(appUser.getPassword()) || !appUser.getPassword().matches(Utils.PASSWORD_REGEX))
             throw new ResponseStatusException(BAD_REQUEST, "'appUser.password' does not match pattern");
 
         return true;
@@ -514,8 +504,10 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @throws ResponseStatusException 406 if given email or password are invalid, 409 if email already taken, 
      * @throws IllegalArgumentException
      * @throws MessagingException if mail sending has failed (more likely to just log but not thorw, since mail sending happens asynchronously)
+     * @throws IOException 
+     * @throws IllegalStateException 
      */
-    public AppUser register(String email, String password) throws ResponseStatusException, IllegalArgumentException, MessagingException {
+    public AppUser register(String email, String password) throws ResponseStatusException, IllegalArgumentException, MessagingException, IllegalStateException, IOException {
 
         assertArgsNotNullAndNotBlankOrThrow(email, password);
 
@@ -536,12 +528,14 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @throws ResponseStatusException 202 app user already enabled, 404 if no app user exists with given {@code email}
      * @throws IllegalArgumentException
      * @throws MessagingException if mail sending has failed (more likely to just log but not thorw, since mail sending happens asynchronously)
+     * @throws IOException 
+     * @throws IllegalStateException 
      */
-    public void resendAccountRegistrationConfirmationMail(String email) throws ResponseStatusException, IllegalArgumentException, MessagingException {
+    public void resendAccountRegistrationConfirmationMail(String email) throws ResponseStatusException, IllegalArgumentException, MessagingException, IllegalStateException, IOException {
 
         assertArgsNotNullAndNotBlankOrThrow(email);
 
-        AppUser appUser = getByEmailIgnoreOauth2Users(email);
+        AppUser appUser = loadByEmail(email);
 
         if (appUser == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No app user with given 'email'");

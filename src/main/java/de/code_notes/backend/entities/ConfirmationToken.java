@@ -30,6 +30,7 @@ import java.util.UUID;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ConfirmationToken extends AbstractEntity {
 
+    /** Also hard coded in "constants.ts" */
     private static final int HOURS_BEFORE_EXPIRED = 12;
     
     @Column(nullable = false)
