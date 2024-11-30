@@ -1,6 +1,8 @@
 package de.code_notes.backend.services;
 
 import static de.code_notes.backend.helpers.Utils.CONFIRM_ACCOUNT_PATH;
+import static de.code_notes.backend.helpers.Utils.LOGIN_PATH;
+import static de.code_notes.backend.helpers.Utils.RESET_PASSWORD_PATH;
 import static de.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
 import static de.code_notes.backend.helpers.Utils.isBlank;
 
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.ConfirmationToken;
 import de.code_notes.backend.helpers.Utils;
+import jakarta.annotation.Nullable;
 import jakarta.mail.MessagingException;
 
 
@@ -33,14 +36,20 @@ public class AsyncService {
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
     
-    @Value("${FRONTEND_BASE_URL}/data-policy")
+    @Value("${FRONTEND_BASE_URL}" + Utils.DATA_POLICY_PATH)
     private String DATA_POLICY_URL;
     
-    @Value("${FRONTEND_BASE_URL}/about")
+    @Value("${FRONTEND_BASE_URL}" + Utils.ABOUT_PATH)
     private String ABOUT_URL;
 
     @Value("classpath:mail/accountConfirmationMail.html")
     private Resource accountConfirmationMail;
+    
+    @Value("classpath:mail/resetPasswordMail.html")
+    private Resource resetPasswordMail;
+        
+    @Value("classpath:mail/passwordHasBeenResetMail.html")
+    private Resource passwordHasBeenResetMail;
 
     @Value("classpath:static/favicon.ico")
     private Resource favicon;
@@ -68,9 +77,15 @@ public class AsyncService {
 
         assertArgsNotNullAndNotBlankOrThrow(confirmationToken);
 
-        String mailHtml = getAccountRegistrationConfirmationMail(this.BASE_URL + CONFIRM_ACCOUNT_PATH + "?token=" + confirmationToken.getToken());
+        String mailHtml = htmlMailToString(
+            this.accountConfirmationMail, 
+            this.FRONTEND_BASE_URL,
+            this.BASE_URL + CONFIRM_ACCOUNT_PATH + "?token=" + confirmationToken.getToken(),
+            this.DATA_POLICY_URL,
+            this.ABOUT_URL
+        );
             
-        String subject = "Confirm your Account | Code Notes";
+        String subject = "Confirm your account | Code Notes";
 
         this.mailService.sendMail(
             confirmationToken.getAppUser().getEmail(), 
@@ -84,32 +99,87 @@ public class AsyncService {
 
 
     /**
-     * Parse the html mail file to string and add the necessary variables to it.
+     * Asyncronously sends a mail to the {@link AppUser} of given {@code confirmationToken} that contains the password reset link.<p>
      * 
-     * @param confirmationLink endpoint to confirm the account. See {@code AppUserController}
-     * @return the html mail content
+     * Does not check or validate any confirmation value like the expired date etc.
+     * 
+     * @param confirmationToken that has the token value and the {@code appUser}
+     * @throws IllegalArgumentException
+     * @throws MessagingException if mail sending has failed (more likely to just log but not thorw, since mail sending happens asynchronously)
+     * @throws IOException 
+     * @throws IllegalStateException 
+     */
+    @Async
+    public void sendResetPasswordMail(ConfirmationToken confirmationToken) throws IllegalArgumentException, MessagingException, IllegalStateException, IOException {
+
+        assertArgsNotNullAndNotBlankOrThrow(confirmationToken);
+
+        String mailHtml = htmlMailToString(
+            this.resetPasswordMail,
+            this.FRONTEND_BASE_URL,
+            this.FRONTEND_BASE_URL + RESET_PASSWORD_PATH + "?token=" + confirmationToken.getToken(),
+            this.DATA_POLICY_URL,
+            this.ABOUT_URL
+        );
+            
+        String subject = "Reset password | Code Notes";
+
+        this.mailService.sendMail(
+            confirmationToken.getAppUser().getEmail(), 
+            subject, 
+            mailHtml, 
+            true, 
+            Map.of("faviconWithLabel", Map.of(MailService.getFileAsAttachment(this.faviconWithLabel.getContentAsByteArray()), MediaType.IMAGE_PNG_VALUE)),
+            Map.of(this.favicon.getFilename(), MailService.getFileAsAttachment(this.favicon.getContentAsByteArray()))
+        );
+    }
+
+
+    @Async
+    public void sendPasswordHasBeenResetMail(String to) throws IllegalArgumentException, IllegalStateException, IOException, MessagingException {
+
+        assertArgsNotNullAndNotBlankOrThrow(to);
+
+        String subject = "Password has been reset | Code Notes";
+
+        String mailHtml = htmlMailToString(
+            this.passwordHasBeenResetMail, 
+            this.FRONTEND_BASE_URL,
+            this.BASE_URL + "/app-user/send-reset-password-mail?to=" + to + "&redirectTo=" + this.FRONTEND_BASE_URL + LOGIN_PATH,
+            this.DATA_POLICY_URL,
+            this.ABOUT_URL 
+        );
+
+        this.mailService.sendMail(
+            to, 
+            subject, 
+            mailHtml, 
+            true, 
+            Map.of("faviconWithLabel", Map.of(MailService.getFileAsAttachment(this.faviconWithLabel.getContentAsByteArray()), MediaType.IMAGE_PNG_VALUE)),
+            Map.of(this.favicon.getFilename(), MailService.getFileAsAttachment(this.favicon.getContentAsByteArray()))
+        );
+    }
+
+
+    /**
+     * Parse the html mail file to string.
+     * 
+     * @param mailResource with the html mail
+     * @param formatArgs args to pass to {@code String.format()} on the parsed mail string
+     * @return the html mail content string
      * @throws IllegalStateException
      * @throws IllegalArgumentException
      * @throws IOException
      */
-    private String getAccountRegistrationConfirmationMail(String confirmationLink) throws IllegalStateException, IllegalArgumentException, IOException {
+    private String htmlMailToString(Resource mailResource, @Nullable String ...formatArgs) throws IllegalStateException, IllegalArgumentException, IOException {
 
-        if (this.accountConfirmationMail == null)
-            throw new IllegalStateException("Failed to find 'accountConfirmationMail.html'");
+        assertArgsNotNullAndNotBlankOrThrow(mailResource);
 
-        if (isBlank(confirmationLink))
-            throw new IllegalStateException("'confirmationLink' cannot be blank");
+        String mailString = Utils.fileToString(new ByteArrayInputStream(mailResource.getContentAsByteArray()));
 
-        String accountConfirmationMailString = Utils.fileToString(new ByteArrayInputStream(this.accountConfirmationMail.getContentAsByteArray()));
+        if (isBlank(mailString))
+            throw new IllegalStateException("'mailResource' seems to be empty");
 
-        if (isBlank(accountConfirmationMailString))
-            throw new IllegalStateException("'accountConfirmationMail.html' seems to be empty");
-
-        return accountConfirmationMailString.formatted(
-            this.FRONTEND_BASE_URL,
-            confirmationLink,
-            this.DATA_POLICY_URL,
-            this.ABOUT_URL
-        );
+        return mailString.formatted((Object[]) formatArgs);
     }
 }

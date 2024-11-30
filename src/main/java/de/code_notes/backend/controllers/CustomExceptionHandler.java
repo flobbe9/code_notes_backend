@@ -76,6 +76,21 @@ public class CustomExceptionHandler {
 
         return getResponse(status, message);
     }
+        
+
+    /**
+     * Thrown as generic exception with a status code.
+     * 
+     * @param exception
+     * @return
+     */
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<CustomExceptionFormat> handleException(IllegalArgumentException exception) {
+
+        logPackageStackTrace(exception, exception.getMessage());
+
+        return getResponse(BAD_REQUEST, exception.getMessage());
+    }
 
 
     /**
@@ -146,7 +161,7 @@ public class CustomExceptionHandler {
 
         logPackageStackTrace(exception);
 
-        return getResponse(HttpStatus.FORBIDDEN, "Forbidden");
+        return getResponse(HttpStatus.FORBIDDEN);
     }
 
     

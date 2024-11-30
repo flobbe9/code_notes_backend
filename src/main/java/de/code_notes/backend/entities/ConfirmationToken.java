@@ -31,9 +31,11 @@ import java.util.UUID;
 public class ConfirmationToken extends AbstractEntity {
 
     /** Also hard coded in "constants.ts" */
-    private static final int HOURS_BEFORE_EXPIRED = 12;
+    public static final int HOURS_BEFORE_EXPIRED_DEFAULT = 12;
+    public static final int HOURS_BEFORE_EXPIRES_PASSWORD_RESET = 1;
+
     
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     @NotBlank(message = "'token' cannot be blank")
     @EqualsAndHashCode.Include
     private String token;
@@ -55,21 +57,21 @@ public class ConfirmationToken extends AbstractEntity {
 
 
     /**
-     * Sets expiration time to {@link #HOURS_BEFORE_EXPIRED} minutes.
+     * Sets expiration time to {@link #HOURS_BEFORE_EXPIRED_DEFAULT} minutes.
      */
     public ConfirmationToken(AppUser appUser) {
 
         this.token = UUID.randomUUID().toString();
         this.appUser = appUser;
-        this.expiresAt = LocalDateTime.now().plusHours(HOURS_BEFORE_EXPIRED);
+        this.expiresAt = LocalDateTime.now().plusHours(HOURS_BEFORE_EXPIRED_DEFAULT);
     }
 
 
-    public ConfirmationToken(AppUser appUser, int hoursUntilExpired) {
+    public ConfirmationToken(AppUser appUser, int hoursBeforeExpired) {
         
         this.token = UUID.randomUUID().toString();
         this.appUser = appUser;
-        this.expiresAt = LocalDateTime.now().plusHours(hoursUntilExpired);
+        this.expiresAt = LocalDateTime.now().plusHours(hoursBeforeExpired);
     }
 
 

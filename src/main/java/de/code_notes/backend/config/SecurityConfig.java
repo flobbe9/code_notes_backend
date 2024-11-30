@@ -176,7 +176,9 @@ public class SecurityConfig {
             "/app-user/register",
             CONFIRM_ACCOUNT_PATH,
             "/app-user/resend-confirmation-mail",
-            "/app-user/check-logged-in"
+            "/app-user/check-logged-in",
+            "/send-reset-password-mail",
+            "/app-user/reset-password"
         ));
 
         // case: development

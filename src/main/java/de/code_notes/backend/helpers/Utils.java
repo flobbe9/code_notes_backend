@@ -33,7 +33,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -62,14 +61,6 @@ import lombok.extern.log4j.Log4j2;
 @Configuration
 public class Utils {
     
-    public static final String RESOURCES_FOLDER = "src/main/resources/";
-    public static final String STATIC_FOLDER = RESOURCES_FOLDER + "/static";
-    public static final String MAIL_FOLDER = RESOURCES_FOLDER + "mail/";
-    public static final String IMG_FOLDER = RESOURCES_FOLDER + "img/";
-
-    public static final String VERIFICATION_MAIL_FILE_NAME = "verificationMail.html";
-    public static final String FAVICON_FILE_NAME = "favicon.png"; 
-
     /** list of file names that should never be deleted during clean up processes */
     public static final Set<String> KEEP_FILES = Set.of(".gitkeep");
 
@@ -78,8 +69,13 @@ public class Utils {
     public static final String OAUTH2_CLIENT_REGISTRATION_ID_GITHUB = "github";
     public static final String OAUTH2_CLIENT_REGISTRATION_ID_AZURE = "azure";
 
-    public static final String LOGIN_PATH = "/login";
+    // backend
     public static final String CONFIRM_ACCOUNT_PATH = "/app-user/confirm-account";
+    // frontend
+    public static final String LOGIN_PATH = "/login";
+    public static final String DATA_POLICY_PATH = "/data-policy";
+    public static final String ABOUT_PATH = "/about";
+    public static final String RESET_PASSWORD_PATH = "/reset-password";
 
     /** 
      * At least <p>
@@ -89,22 +85,10 @@ public class Utils {
      * - one number and <p>
      * - one of given special characters.
      */
-    public static final String PASSWORD_REGEX = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,;_!#$%&@€*+=?´`\"'\\/\\{|}()~^-])(.{8,72})$";
+    public static final String PASSWORD_REGEX = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,;_!#$%&@€*+=?´`\"'\\{|}\\/()~^-])(.{8,72})$";
     public static final String EMAIL_REGEX = "^[\\w\\-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSS";
-
-    @Bean
-    File verificationMail() {
-
-        return new File(MAIL_FOLDER + VERIFICATION_MAIL_FILE_NAME);
-    }
-
-    @Bean
-    File favicon() {
-
-        return new File(IMG_FOLDER + FAVICON_FILE_NAME);
-    }
 
 
     /**
@@ -252,25 +236,23 @@ public class Utils {
 
 
     /**
-     * Writes given byte array to file into {@link #STATIC_FOLDER}.
+     * Writes given byte array to file.
      * 
      * @param bytes content of file
-     * @param fileName name of the file
+     * @param fileName complete name of the file
      * @return file or {@code null} if a param is invalid
      * @throws IOException 
      * @throws FileNotFoundException 
      */
     public static File byteArrayToFile(byte[] bytes, String fileName) throws FileNotFoundException, IOException {
 
-        String completeFileName = STATIC_FOLDER + prependSlash(fileName);
-
-        if (bytes == null) 
+        if (!assertArgsNotNullAndNotBlank(bytes, fileName)) 
             return null;
         
-        try (OutputStream fos = new FileOutputStream(completeFileName)) {
+        try (OutputStream fos = new FileOutputStream(fileName)) {
             fos.write(bytes);
 
-            return new File(completeFileName);
+            return new File(fileName);
         }
     }
 

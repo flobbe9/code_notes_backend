@@ -40,8 +40,10 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/app-user")
-
 public class AppUserController {
+
+    /** The url query param key that is appended to the redirect url after account confirmation. Also hard coded in "constatns.ts" */
+    private static final String CONFIRM_ACCOUNT_STATUS_PARAM = "confirm-account-status-code";
 
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
@@ -52,7 +54,7 @@ public class AppUserController {
     
     @PostMapping("/save")
     @Operation(
-        description = "Save new (set id null) or update (pass valid id). AuthRequirements: LOGGED_IN", 
+        description = "Save new (id null) or update (valid id). AuthRequirements: LOGGED_IN", 
         responses = {
             @ApiResponse(responseCode = "200", description = "AppUser saved successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid appUser"),
@@ -74,7 +76,6 @@ public class AppUserController {
         description = "Saves new app user and sends a confirmation mail (asynchronously). AuthRequirements: NONE",
         responses = {
             @ApiResponse(responseCode = "200", description = "New user saved, mail sending process has been started"),
-            @ApiResponse(responseCode = "202", description = "App user already enabled"),
             @ApiResponse(responseCode = "400", description = "Invalid params"),
             @ApiResponse(responseCode = "406", description = "Invalid param pattern"),
             @ApiResponse(responseCode = "409", description = "App user with this email already exists"),
@@ -83,7 +84,7 @@ public class AppUserController {
     )
     public void register(
         @RequestParam @NotBlank(message = "'email' cannot be blank") String email, 
-        @RequestParam @NotBlank(message = "'password' cannot be blank") String password) throws ResponseStatusException, IllegalArgumentException, MessagingException {
+        @RequestParam @NotBlank(message = "'password' cannot be blank") String password) throws ResponseStatusException, IllegalArgumentException, MessagingException, IllegalStateException, IOException {
         
         this.appUserService.register(email, password);
     }
@@ -100,7 +101,7 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Any other error"),
         }
     )
-    public void resendConfirmationMail(@RequestParam @NotBlank(message = "'email' cannot be blank") String email) throws IllegalArgumentException, ResponseStatusException, MessagingException {
+    public void resendConfirmationMail(@RequestParam @NotBlank(message = "'email' cannot be blank") String email) throws IllegalArgumentException, ResponseStatusException, MessagingException, IllegalStateException, IOException {
 
         this.appUserService.resendAccountRegistrationConfirmationMail(email);
     }
@@ -109,10 +110,9 @@ public class AppUserController {
     @GetMapping("/confirm-account")
     @Operation(
         description = 
-            """
-                Confirm both the confirmation token and the app user linked to given token value.
-                Will in any case redirect to frontend login url and (if error) append the respnose status code like this: http://localhost:3000/login/?error-status={statusCode}          
-            """,
+            "Confirm both the confirmation token and the app user linked to given token value. " +
+            "Will redirect to frontend login url and append the respnose status code (successful or not) like this: " + 
+            "http://localhost:3000/login/?" + CONFIRM_ACCOUNT_STATUS_PARAM + "={statusCode}",
         responses = {
             @ApiResponse(responseCode = "200", description = "Confirmed token and app user"),
             @ApiResponse(responseCode = "202", description = "App user or token confirmed already"),
@@ -132,21 +132,20 @@ public class AppUserController {
 
             this.appUserService.confirmAppUser(token.get());
 
-        // possibly append a bad status code and log
+            redirectUrl += "/?%s=200".formatted(CONFIRM_ACCOUNT_STATUS_PARAM);
+
         } catch (ResponseStatusException e) {
-            if (!Utils.isHttpStatusAlright(e.getStatusCode().value()))
-                redirectUrl += "/?error-status=" + e.getStatusCode().value();
+            redirectUrl += "/?%s=%s".formatted(CONFIRM_ACCOUNT_STATUS_PARAM, e.getStatusCode().value());
 
             CustomExceptionHandler.logPackageStackTrace(e, e.getReason());
 
         } catch (Exception e) {
-            redirectUrl += "/?error-status=500";
+            redirectUrl += "/?%s=500".formatted(CONFIRM_ACCOUNT_STATUS_PARAM);
             CustomExceptionHandler.logPackageStackTrace(e);
         }
 
         Utils.redirect(response, redirectUrl);
     }
-
 
 
     @DeleteMapping("/delete-current")
@@ -158,7 +157,7 @@ public class AppUserController {
             @ApiResponse(responseCode = "403", description = "Invalid csrf")
         }
     )
-    // dont return anything here, since 401 would be thrown afeter logout call
+    // dont return anything here, since 401 would be thrown after logout call
     public void deleteCurrent(HttpServletResponse response) throws JsonProcessingException, IllegalArgumentException, IOException {
 
         this.appUserService.deleteCurrent();
@@ -189,11 +188,56 @@ public class AppUserController {
             @ApiResponse(responseCode = "200", description = "Returned the app user of the current session"),
             @ApiResponse(responseCode = "401", description = "Current session is invalid, user is not logged in"),
             @ApiResponse(responseCode = "403", description = "Invalid csrf"),
-            @ApiResponse(responseCode = "404", description = "Current app user not found in db")
+            @ApiResponse(responseCode = "404", description = "Current app user not found in db"),
+            @ApiResponse(responseCode = "501", description = "Current principal is neither normally logged in nor an oauth2 user"),
         }
     )
     public Mono<AppUser> getCurrent(HttpServletRequest request) {
 
-        return Mono.just(this.appUserService.getCurrentFromDb());
+        return Mono.just(this.appUserService.loadCurrentFromDb());
+    }
+
+
+    @PostMapping("/reset-password")
+    @Operation(
+        description = "Reset password either by 'password-reset-mail' (using 'token' param) or via account settings when logged in (using 'oldPassword' param)",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Password reset, appUser saved"),
+            @ApiResponse(responseCode = "400", description = "Invalid args or new password does not match pattern. Make sure that one of the optional params is present"),
+            @ApiResponse(responseCode = "404", description = "'token' not found in db"),
+            @ApiResponse(responseCode = "406", description = "Old password does not match current one"),
+            @ApiResponse(responseCode = "409", description = "appUser not enabled"),
+            @ApiResponse(responseCode = "417", description = "appUser does not have a password in the first place (propably oauth2 user)"),
+            @ApiResponse(responseCode = "500", description = "Any other unexpected error")
+        }
+    )
+    public void resetPassword(@RequestParam @NotBlank(message = "'newPassword' cannot be blank") String newPassword, @RequestParam Optional<String> oldPassword, @RequestParam Optional<String> token) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
+
+        this.appUserService.resetPassword(newPassword, oldPassword.orElse(null), token.orElse(null));
+    }
+
+    
+    @GetMapping("/send-reset-password-mail")
+    @Operation(
+        description = "Send mail to given 'to' user to reset their password",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Mail has been sent, user is valid candidate for reset-password mail"),
+            @ApiResponse(responseCode = "400", description = "Invalid args"),
+            @ApiResponse(responseCode = "404", description = "No app user with that email"),
+            @ApiResponse(responseCode = "409", description = "App user not enabled yet"),
+            @ApiResponse(responseCode = "417", description = "App user without password (propably oauth2 user)"),
+            @ApiResponse(responseCode = "500", description = "Any other unexpected error")
+        }
+    )
+    public void sendResetPasswordMail(
+        @RequestParam @NotBlank(message = "'to' cannot be blank") String to,
+        @RequestParam Optional<String> redirectTo,
+        HttpServletResponse response
+    ) throws ResponseStatusException, IllegalArgumentException, IllegalStateException, MessagingException, IOException {
+
+        this.appUserService.sendResetPasswordMail(to);
+
+        if (redirectTo.isPresent())
+            Utils.redirect(response, redirectTo.get());
     }
 }

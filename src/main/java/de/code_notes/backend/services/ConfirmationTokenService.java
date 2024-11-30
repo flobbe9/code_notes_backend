@@ -70,15 +70,29 @@ public class ConfirmationTokenService extends AbstractService<ConfirmationToken>
      * @throws ResponseStatusException
      * @throws IllegalArgumentException
      */
-    public ConfirmationToken createNew(AppUser appUser) throws ResponseStatusException, IllegalArgumentException {
+    public ConfirmationToken createNew(AppUser appUser, int hoursBeforeExpired) throws ResponseStatusException, IllegalArgumentException {
 
         assertArgsNotNullAndNotBlankOrThrow(appUser);
 
         deleteByAppUser(appUser);
 
-        ConfirmationToken confirmationToken = new ConfirmationToken(appUser);
+        ConfirmationToken confirmationToken = new ConfirmationToken(appUser, hoursBeforeExpired);
 
         return save(confirmationToken);
+    }
+    
+    
+    /**
+     * Overload. Use {@code HOURS_BEFORE_EXPIRED_DEFAULT}
+     * 
+     * @param appUser
+     * @return the saved confirmation token
+     * @throws ResponseStatusException
+     * @throws IllegalArgumentException
+     */
+    public ConfirmationToken createNew(AppUser appUser) throws ResponseStatusException, IllegalArgumentException {
+
+        return createNew(appUser, ConfirmationToken.HOURS_BEFORE_EXPIRED_DEFAULT);
     }
 
 
@@ -106,8 +120,6 @@ public class ConfirmationTokenService extends AbstractService<ConfirmationToken>
      */
     public ConfirmationToken confirm(ConfirmationToken confirmationToken) throws ResponseStatusException, IllegalArgumentException {
 
-        assertArgsNotNullAndNotBlankOrThrow(confirmationToken);
-
         if (confirmationToken == null)
             throw new ResponseStatusException(NOT_FOUND, "No confirmation token with given 'token' value");
 
@@ -123,12 +135,29 @@ public class ConfirmationTokenService extends AbstractService<ConfirmationToken>
     }
 
 
-    public ConfirmationToken getByToken(@Nullable String token) {
+    /**
+     * @param token
+     * @return the confirmation token or {@code null}
+     */
+    public ConfirmationToken loadByToken(@Nullable String token) {
 
         if (isBlank(token))
             return null;
 
         return this.confirmationTokenRepository.findByToken(token).orElse(null);
+    }
+
+
+    /**
+     * @param appUser related to the confirmation token
+     * @return the confirmation token or {@code null}
+     */
+    public ConfirmationToken loadByAppUser(@Nullable AppUser appUser) {
+
+        if (appUser == null)
+            return null;
+
+        return this.confirmationTokenRepository.findByAppUser(appUser).orElse(null);
     }
 
 

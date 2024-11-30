@@ -26,4 +26,6 @@ public interface ConfirmationTokenRepository extends AbstractRepository<Confirma
 
     @Transactional
     void deleteByCreatedBefore(LocalDateTime minusMonths);
+
+    Optional<ConfirmationToken> findByAppUser(AppUser appUser);
 }

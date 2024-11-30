@@ -31,16 +31,22 @@ public class NoteService extends AbstractService<Note> {
     @Autowired
     private AppUserService appUserService;
 
+    @Autowired
+    private Oauth2Service oauth2Service;
+
 
     /**
-     * @return
+     * @return all notes of the app user currently logged in
      * @throws ResponseStatusException
      */
     public List<Note> getAllByCurrentAppUser() throws ResponseStatusException {
 
         AppUser appUser = this.appUserService.getCurrent();
 
-        return this.noteRepository.findAllByAppUserEmail(appUser.getEmail());
+        if (this.oauth2Service.isOauth2Session())
+            return this.noteRepository.findAllByAppUserOauth2Id(appUser.getOauth2Id());
+
+        return this.noteRepository.findAllByAppUserEmailAndAppUserOauth2IdIsNull(appUser.getEmail());
     }
 
 
@@ -60,7 +66,7 @@ public class NoteService extends AbstractService<Note> {
 
         validateAndThrow(note);
 
-        AppUser currentAppUser = this.appUserService.getCurrent();
+        AppUser currentAppUser = this.appUserService.loadCurrentFromDb();
 
         setIgnoredFields(note, currentAppUser);
 

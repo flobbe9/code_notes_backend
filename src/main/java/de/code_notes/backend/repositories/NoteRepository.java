@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import de.code_notes.backend.abstracts.AbstractRepository;
-import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.entities.Note;
 
 
@@ -17,5 +16,7 @@ import de.code_notes.backend.entities.Note;
 @Repository
 public interface NoteRepository extends AbstractRepository<Note> {
 
-    List<Note> findAllByAppUserEmail(String email);
+    List<Note> findAllByAppUserOauth2Id(String oauth2Id);
+
+    List<Note> findAllByAppUserEmailAndAppUserOauth2IdIsNull(String email);
 }
