@@ -200,7 +200,27 @@ public class AppUserController {
 
     @PostMapping("/reset-password")
     @Operation(
-        description = "Reset password either by 'password-reset-mail' (using 'token' param) or via account settings when logged in (using 'oldPassword' param)",
+        description = "Reset password via account settings when logged in. AuthRequirements: LOGGED_IN",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Password reset, appUser saved"),
+            @ApiResponse(responseCode = "400", description = "Invalid args or new password does not match pattern. Make sure that one of the optional params is present"),
+            @ApiResponse(responseCode = "401", description = "Current session is invalid, user is not logged in"),
+            @ApiResponse(responseCode = "403", description = "Invalid csrf"),
+            @ApiResponse(responseCode = "406", description = "Old password does not match current one"),
+            @ApiResponse(responseCode = "409", description = "appUser not enabled"),
+            @ApiResponse(responseCode = "417", description = "appUser does not have a password in the first place (propably oauth2 user)"),
+            @ApiResponse(responseCode = "500", description = "Any other unexpected error")
+        }
+    )
+    public void resetPassword(@RequestParam @NotBlank(message = "'newPassword' cannot be blank") String newPassword, @RequestParam @NotBlank(message = "'oldPassword' cannot be blank") String oldPassword) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
+
+        this.appUserService.resetPassword(newPassword, oldPassword);
+    }
+
+    
+    @PostMapping("/reset-password-by-token")
+    @Operation(
+        description = "Reset password by 'password-reset-mail'",
         responses = {
             @ApiResponse(responseCode = "200", description = "Password reset, appUser saved"),
             @ApiResponse(responseCode = "400", description = "Invalid args or new password does not match pattern. Make sure that one of the optional params is present"),
@@ -211,9 +231,9 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Any other unexpected error")
         }
     )
-    public void resetPassword(@RequestParam @NotBlank(message = "'newPassword' cannot be blank") String newPassword, @RequestParam Optional<String> oldPassword, @RequestParam Optional<String> token) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
+    public void resetPasswordByToken(@RequestParam @NotBlank(message = "'newPassword' cannot be blank") String newPassword, @RequestParam @NotBlank(message = "'token' cannot be blank") String token) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
 
-        this.appUserService.resetPassword(newPassword, oldPassword.orElse(null), token.orElse(null));
+        this.appUserService.resetPasswordByToken(newPassword, token);
     }
 
     
@@ -229,11 +249,7 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Any other unexpected error")
         }
     )
-    public void sendResetPasswordMail(
-        @RequestParam @NotBlank(message = "'to' cannot be blank") String to,
-        @RequestParam Optional<String> redirectTo,
-        HttpServletResponse response
-    ) throws ResponseStatusException, IllegalArgumentException, IllegalStateException, MessagingException, IOException {
+    public void sendResetPasswordMail(@RequestParam @NotBlank(message = "'to' cannot be blank") String to, @RequestParam Optional<String> redirectTo, HttpServletResponse response) throws ResponseStatusException, IllegalArgumentException, IllegalStateException, MessagingException, IOException {
 
         this.appUserService.sendResetPasswordMail(to);
 

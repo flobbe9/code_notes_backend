@@ -44,7 +44,8 @@ public class SecurityConfig {
     /**
      * Possible values:<p>
      * 
-     * - {@code production}: login required, no develpment endpoints like swagger permitted, csrf enabled <p>
+     * - {@code production}: login required, no develpment endpoints like swagger permitted, csrf enabled, .env.secrets not used<p>
+     * - {@code qa}: login required, no develpment endpoints like swagger permitted, csrf enabled <p>
      * - {@code development}: no login required, all development endpoints like swagger permitted, csrf disabled
      */
     @Value("${ENV}")
@@ -85,7 +86,7 @@ public class SecurityConfig {
                 .anyRequest()
                     .permitAll());
 
-        // case: production
+        // case: qa | production
         } else {
             http.csrf(csrf -> csrf
                 .ignoringRequestMatchers(getRoutesPriorToLogin())
@@ -178,7 +179,7 @@ public class SecurityConfig {
             "/app-user/resend-confirmation-mail",
             "/app-user/check-logged-in",
             "/send-reset-password-mail",
-            "/app-user/reset-password"
+            "/app-user/reset-password-by-token"
         ));
 
         // case: development

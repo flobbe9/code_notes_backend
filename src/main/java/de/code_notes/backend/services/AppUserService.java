@@ -626,33 +626,33 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
     }
 
 
-    /**
-     * If {@code isLoggedIn()} it will be assumed that the user has reset their password via account settings. In this case {@code oldPassword} cannot be null (but {@code token} can).<p>
-     * 
-     * If not {@code isLoggedIn()} it will be assumed that the user resets their password via "password-reset-mail". In this case {@code token} cannot be null (but {@code oldPassword} can).<p>
-     * 
-     * Notify user upon successful reset via mail (no matter if loggedin or not).
-     * 
-     * @param newPassword raw new password
-     * @param oldPassword raw old password, needs to match the current one
-     * @param token related to a confirmation token in case this method is called via "password-reset-mail"
-     * @throws MessagingException 
-     * @throws IOException 
-     * @throws IllegalStateException 
-     * @throws IllegalArgumentException 
-     */
-    public void resetPassword(String newPassword, @Nullable String oldPassword, @Nullable String token) throws IllegalArgumentException, IllegalStateException, IOException, MessagingException {
+    // /**
+    //  * If {@code isLoggedIn()} it will be assumed that the user has reset their password via account settings. In this case {@code oldPassword} cannot be null (but {@code token} can).<p>
+    //  * 
+    //  * If not {@code isLoggedIn()} it will be assumed that the user resets their password via "password-reset-mail". In this case {@code token} cannot be null (but {@code oldPassword} can).<p>
+    //  * 
+    //  * Notify user upon successful reset via mail (no matter if loggedin or not).
+    //  * 
+    //  * @param newPassword raw new password
+    //  * @param oldPassword raw old password, needs to match the current one
+    //  * @param token related to a confirmation token in case this method is called via "password-reset-mail"
+    //  * @throws MessagingException 
+    //  * @throws IOException 
+    //  * @throws IllegalStateException 
+    //  * @throws IllegalArgumentException 
+    //  */
+    // public void resetPassword(String newPassword, @Nullable String oldPassword, @Nullable String token) throws IllegalArgumentException, IllegalStateException, IOException, MessagingException {
 
-        AppUser updatedAppUser = null;
+    //     AppUser updatedAppUser = null;
 
-        if (isLoggedIn())
-            updatedAppUser = resetPassword(newPassword, oldPassword);
+    //     if (isLoggedIn())
+    //         updatedAppUser = resetPassword(newPassword, oldPassword);
             
-        else
-            updatedAppUser = resetPasswordByToken(newPassword, token);
+    //     else
+    //         updatedAppUser = resetPasswordByToken(newPassword, token);
 
-        this.asyncService.sendPasswordHasBeenResetMail(updatedAppUser.getEmail());
-    }
+    //     this.asyncService.sendPasswordHasBeenResetMail(updatedAppUser.getEmail());
+    // }
 
 
     /**
@@ -664,13 +664,19 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @param newPassword raw new password
      * @param token related to a confirmation token
      * @throws IllegalArgumentException
-     * @throws ResponseStatusException 400 if {@code newPassword} does not match regex, 409 if appUser not enabled yet, 417 if appUser did not have a password,
+     * @throws ResponseStatusException 400 if {@code newPassword} does not match regex, 404 if token not present, 409 if appUser not enabled yet, 417 if appUser did not have a password,
+     * @throws MessagingException 
+     * @throws IOException 
+     * @throws IllegalStateException 
      */
-    private AppUser resetPasswordByToken(String newPassword, String token) throws IllegalArgumentException, ResponseStatusException {
+    public AppUser resetPasswordByToken(String newPassword, String token) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
 
         assertArgsNotNullAndNotBlankOrThrow(newPassword, token);
 
         ConfirmationToken confirmationToken = this.confirmationTokenService.loadByToken(token);
+        if (confirmationToken == null)
+            throw new ResponseStatusException(NOT_FOUND, "No confirmation token with this 'token' value");
+
         AppUser appUser = confirmationToken.getAppUser();
 
         if (!appUser.isEnabled())
@@ -686,6 +692,8 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
         appUser.setPassword(this.passwordEncoder.encode(newPassword));
 
+        this.asyncService.sendPasswordHasBeenResetMail(appUser.getEmail());
+
         return save(appUser);
     }
 
@@ -700,8 +708,11 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @param oldPassword raw old password, needs to match the current one
      * @throws IllegalArgumentException
      * @throws ResponseStatusException 400 if {@code newPassword} does not match regex, 406 if the {@code oldPassword} does not match the current one, 409 if appUser not enabled yet, 417 if appUser did not have a password,
+     * @throws MessagingException 
+     * @throws IOException 
+     * @throws IllegalStateException 
      */
-    private AppUser resetPassword(String newPassword, String oldPassword) throws IllegalArgumentException, ResponseStatusException {
+    public AppUser resetPassword(String newPassword, String oldPassword) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
 
         assertArgsNotNullAndNotBlankOrThrow(newPassword, oldPassword);
 
@@ -720,6 +731,8 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         validatePasswordAndThrow(newPassword);
 
         appUser.setPassword(this.passwordEncoder.encode(newPassword));
+
+        this.asyncService.sendPasswordHasBeenResetMail(appUser.getEmail());
 
         return save(appUser);
     }
