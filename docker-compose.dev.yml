@@ -9,7 +9,7 @@ services:
       MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
       MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      TZ: Europe/Berlin
+      TZ: ${TZ}
     command: --mysql-native-password=ON # see mysql_8.4._create_user.md for explanation
     healthcheck:
       test: mysqladmin ping -h db
@@ -42,3 +42,5 @@ services:
     ports: 
         - ${MAIL_PORT}:${MAIL_PORT}
         - 1080:1080
+    environment:
+      TZ: ${TZ}

@@ -3,6 +3,7 @@ package de.code_notes.backend.services;
 import static de.code_notes.backend.helpers.Utils.CONFIRM_ACCOUNT_PATH;
 import static de.code_notes.backend.helpers.Utils.LOGIN_PATH;
 import static de.code_notes.backend.helpers.Utils.RESET_PASSWORD_PATH;
+import static de.code_notes.backend.helpers.Utils.RESET_PASSWORD_TOKEN_URL_QUERY_PARAM;
 import static de.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
 import static de.code_notes.backend.helpers.Utils.isBlank;
 
@@ -50,9 +51,6 @@ public class AsyncService {
         
     @Value("classpath:mail/passwordHasBeenResetMail.html")
     private Resource passwordHasBeenResetMail;
-
-    @Value("classpath:static/favicon.ico")
-    private Resource favicon;
     
     @Value("classpath:assets/img/faviconWithLabel.png")
     private Resource faviconWithLabel;
@@ -93,7 +91,7 @@ public class AsyncService {
             mailHtml, 
             true, 
             Map.of("faviconWithLabel", Map.of(MailService.getFileAsAttachment(this.faviconWithLabel.getContentAsByteArray()), MediaType.IMAGE_PNG_VALUE)),
-            Map.of(this.favicon.getFilename(), MailService.getFileAsAttachment(this.favicon.getContentAsByteArray()))
+            null
         );
     }
 
@@ -117,7 +115,7 @@ public class AsyncService {
         String mailHtml = htmlMailToString(
             this.resetPasswordMail,
             this.FRONTEND_BASE_URL,
-            this.FRONTEND_BASE_URL + RESET_PASSWORD_PATH + "?token=" + confirmationToken.getToken(),
+            this.FRONTEND_BASE_URL + RESET_PASSWORD_PATH + "?" + RESET_PASSWORD_TOKEN_URL_QUERY_PARAM + "=" + confirmationToken.getToken(),
             this.DATA_POLICY_URL,
             this.ABOUT_URL
         );
@@ -130,7 +128,7 @@ public class AsyncService {
             mailHtml, 
             true, 
             Map.of("faviconWithLabel", Map.of(MailService.getFileAsAttachment(this.faviconWithLabel.getContentAsByteArray()), MediaType.IMAGE_PNG_VALUE)),
-            Map.of(this.favicon.getFilename(), MailService.getFileAsAttachment(this.favicon.getContentAsByteArray()))
+            null
         );
     }
 
@@ -156,7 +154,7 @@ public class AsyncService {
             mailHtml, 
             true, 
             Map.of("faviconWithLabel", Map.of(MailService.getFileAsAttachment(this.faviconWithLabel.getContentAsByteArray()), MediaType.IMAGE_PNG_VALUE)),
-            Map.of(this.favicon.getFilename(), MailService.getFileAsAttachment(this.favicon.getContentAsByteArray()))
+            null
         );
     }
 

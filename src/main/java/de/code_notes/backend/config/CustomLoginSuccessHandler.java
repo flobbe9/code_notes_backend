@@ -36,8 +36,8 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
 
-    @Value("${CSRF_TOKEN_QUERY_PARAM}")
-    private String CSRF_TOKEN_QUERY_PARAM;    
+    @Value("${CSRF_TOKEN_URL_QUERY_PARAM}")
+    private String CSRF_TOKEN_URL_QUERY_PARAM;    
 
 
     /**
@@ -59,7 +59,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
             
             // case: oauth2
             if (this.oauth2Service.isOauth2Session(authentication.getPrincipal()))
-                Utils.redirect(response, this.FRONTEND_BASE_URL + "/?%s=%s".formatted(this.CSRF_TOKEN_QUERY_PARAM, csrfTokenValue));
+                Utils.redirect(response, this.FRONTEND_BASE_URL + "/?%s=%s".formatted(this.CSRF_TOKEN_URL_QUERY_PARAM, csrfTokenValue));
 
             // case: normal login
             else

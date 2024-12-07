@@ -71,11 +71,13 @@ public class Utils {
 
     // backend
     public static final String CONFIRM_ACCOUNT_PATH = "/app-user/confirm-account";
+    /** Also hard coded in "constants.ts" */
+    public static final String RESET_PASSWORD_TOKEN_URL_QUERY_PARAM = "token";
     // frontend
     public static final String LOGIN_PATH = "/login";
     public static final String DATA_POLICY_PATH = "/data-policy";
     public static final String ABOUT_PATH = "/about";
-    public static final String RESET_PASSWORD_PATH = "/reset-password";
+    public static final String RESET_PASSWORD_PATH = "/reset-password-by-token";
 
     /** 
      * At least <p>

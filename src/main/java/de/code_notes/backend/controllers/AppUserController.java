@@ -44,6 +44,8 @@ public class AppUserController {
 
     /** The url query param key that is appended to the redirect url after account confirmation. Also hard coded in "constatns.ts" */
     private static final String CONFIRM_ACCOUNT_STATUS_PARAM = "confirm-account-status-code";
+    /** The url query param key that is appended to the redirect url after requesting a reset-password mail externally. Also hard coded in "constatns.ts" */
+    private static final String SEND_RESET_PASSWORD_MAIL_STATUS_PARAM = "send-reset-password-mail";
 
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
@@ -136,7 +138,6 @@ public class AppUserController {
 
         } catch (ResponseStatusException e) {
             redirectUrl += "/?%s=%s".formatted(CONFIRM_ACCOUNT_STATUS_PARAM, e.getStatusCode().value());
-
             CustomExceptionHandler.logPackageStackTrace(e, e.getReason());
 
         } catch (Exception e) {
@@ -225,7 +226,6 @@ public class AppUserController {
             @ApiResponse(responseCode = "200", description = "Password reset, appUser saved"),
             @ApiResponse(responseCode = "400", description = "Invalid args or new password does not match pattern. Make sure that one of the optional params is present"),
             @ApiResponse(responseCode = "404", description = "'token' not found in db"),
-            @ApiResponse(responseCode = "406", description = "Old password does not match current one"),
             @ApiResponse(responseCode = "409", description = "appUser not enabled"),
             @ApiResponse(responseCode = "417", description = "appUser does not have a password in the first place (propably oauth2 user)"),
             @ApiResponse(responseCode = "500", description = "Any other unexpected error")
@@ -239,7 +239,7 @@ public class AppUserController {
     
     @GetMapping("/send-reset-password-mail")
     @Operation(
-        description = "Send mail to given 'to' user to reset their password",
+        description = "Send mail to given 'to' user to reset their password. Optionally redirect to frontend /login appending the error status code",
         responses = {
             @ApiResponse(responseCode = "200", description = "Mail has been sent, user is valid candidate for reset-password mail"),
             @ApiResponse(responseCode = "400", description = "Invalid args"),
@@ -251,9 +251,22 @@ public class AppUserController {
     )
     public void sendResetPasswordMail(@RequestParam @NotBlank(message = "'to' cannot be blank") String to, @RequestParam Optional<String> redirectTo, HttpServletResponse response) throws ResponseStatusException, IllegalArgumentException, IllegalStateException, MessagingException, IOException {
 
-        this.appUserService.sendResetPasswordMail(to);
+        String redirectUrl = redirectTo.orElse("");
+
+        try {
+            this.appUserService.sendResetPasswordMail(to);
+            redirectUrl += "/?%s=200".formatted(SEND_RESET_PASSWORD_MAIL_STATUS_PARAM);
+
+        } catch (ResponseStatusException e) {
+            redirectUrl += "/?%s=%s".formatted(SEND_RESET_PASSWORD_MAIL_STATUS_PARAM, e.getStatusCode().value());
+            CustomExceptionHandler.logPackageStackTrace(e, e.getReason());
+
+        } catch (Exception e) {
+            redirectUrl += "/?%s=500".formatted(SEND_RESET_PASSWORD_MAIL_STATUS_PARAM);
+            CustomExceptionHandler.logPackageStackTrace(e);
+        }
 
         if (redirectTo.isPresent())
-            Utils.redirect(response, redirectTo.get());
+            Utils.redirect(response, redirectUrl);
     }
 }
