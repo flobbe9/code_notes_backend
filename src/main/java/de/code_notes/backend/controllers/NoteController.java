@@ -1,5 +1,7 @@
 package de.code_notes.backend.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import de.code_notes.backend.entities.Note;
 import de.code_notes.backend.services.NoteService;
@@ -54,6 +57,24 @@ public class NoteController {
 
         return Mono.just(this.noteService.save(note));
     }
+
+
+    @PostMapping("/save-all")
+    @Operation(
+        description = "Save or update notes and their relations. AuthRequirements: LOGGED_IN",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Saved or updated notes and their relations successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid param ('notes' may be empty but not null)"),
+            @ApiResponse(responseCode = "401", description = "Not logged in"),
+            @ApiResponse(responseCode = "403", description = "Invalid csrf"),
+            @ApiResponse(responseCode = "500", description = "Any other error")
+        }
+    )
+    public Flux<Note> saveAll(@RequestBody List<@Valid Note> notes) throws IllegalArgumentException, ResponseStatusException {
+
+        return Flux.fromIterable(this.noteService.saveAll(notes));
+    }
+
 
     
     @DeleteMapping("/delete")

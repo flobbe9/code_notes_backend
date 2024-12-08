@@ -2,6 +2,7 @@ package de.code_notes.backend.services;
 
 import static de.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
 
+import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,6 +92,25 @@ public class NoteService extends AbstractService<Note> {
     protected Note update(Note note) throws ResponseStatusException, IllegalArgumentException {
 
         return save(note);
+    }
+
+
+    /**
+     * Save all notes from given list using {@link #save(Note)} method.
+     * 
+     * @param notes may be empty
+     * @return list of saved notes, empty list if {@code notes} is empty
+     * @throws ResponseStatusException see {@link #save(Note)}
+     * @throws IllegalArgumentException if arg is null
+     */
+    public Collection<Note> saveAll(Collection<Note> notes) throws ResponseStatusException, IllegalArgumentException {
+
+        assertArgsNotNullAndNotBlankOrThrow(notes);
+
+        return notes
+            .stream()
+            .map(note -> save(note))
+            .toList();
     }
     
 
