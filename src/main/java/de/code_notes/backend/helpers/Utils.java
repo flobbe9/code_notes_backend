@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -25,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -32,6 +35,14 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -91,6 +102,8 @@ public class Utils {
     public static final String EMAIL_REGEX = "^[\\w\\-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSS";
+
+    private static final String AES_ALGORITHM_NAME = "AES/CBC/PKCS5Padding";
 
 
     /**
@@ -641,6 +654,64 @@ public class Utils {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+
+    /**
+     * Will encrypt given string using AES algorithm ({@link #AES_ALGORITHM_NAME}).
+     * 
+     * @param decryptedStr text to encrypt. Not sure if there's a max length
+     * @param keyString needs to be 16 or 32 bytes long
+     * @param ivString needs to be 16 bytes long
+     * @return encrypted string
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidAlgorithmParameterException
+     * @throws InvalidKeyException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     */
+    public static String encryptAES(String decryptedStr, String keyString, String ivString) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+
+        assertArgsNotNullAndNotBlankOrThrow(decryptedStr, keyString, ivString);        
+
+        SecretKey key = new SecretKeySpec(keyString.getBytes(), "AES");
+        IvParameterSpec iv = new IvParameterSpec(ivString.getBytes());
+
+        Cipher cipher = Cipher.getInstance(AES_ALGORITHM_NAME);
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        byte[] cipherText = cipher.doFinal(decryptedStr.getBytes());
+        
+        return Base64.getEncoder().encodeToString(cipherText);
+    }
+
+
+    /**
+     * Will decrypt given string assuming AES algorithm ({@link #AES_ALGORITHM_NAME}). Use same {@code keyString} and {@code ivString} as for encryption
+     * 
+     * @param encryptedStr text to decrypt. Expected to be encrypted with AES
+     * @param keyString needs to be 16 or 32 bytes long
+     * @param ivString needs to be 16 bytes long
+     * @return encrypted string
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidAlgorithmParameterException
+     * @throws InvalidKeyException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     */
+    public static String decryptAES(String encryptedStr, String keyString, String ivString) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+                
+        assertArgsNotNullAndNotBlankOrThrow(encryptedStr, keyString, ivString);        
+
+        SecretKey key = new SecretKeySpec(keyString.getBytes(), "AES");
+        IvParameterSpec iv = new IvParameterSpec(ivString.getBytes());
+
+        Cipher cipher = Cipher.getInstance(AES_ALGORITHM_NAME);
+        cipher.init(Cipher.DECRYPT_MODE, key, iv);
+        byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(encryptedStr));
+
+        return new String(plainText);
     }
 
 
