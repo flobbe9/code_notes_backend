@@ -180,7 +180,7 @@ public class SecurityConfig {
             "/app-user/check-logged-in",
             "/send-reset-password-mail",
             "/app-user/reset-password-by-token"
-        ));
+            ));
 
         // case: development
         if ("development".equalsIgnoreCase(this.ENV)) {

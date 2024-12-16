@@ -58,7 +58,7 @@ public class AppUser extends AbstractEntity implements UserDetails {
     /** Null only for oauth2 users */
     @Nullable
     @Schema(example = "Abc123,.")
-    // dont add a pattern here because it might not match the encrypted password, pattern is validated in "AppUserService.java"
+    // NOTE: dont add a pattern here because it might not match the encrypted password, pattern is validated in "AppUserService.java"
     private String password;
 
     @Column(nullable = false)
@@ -72,6 +72,7 @@ public class AppUser extends AbstractEntity implements UserDetails {
 
     @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @Nullable
+    // NOTE: don't make this an order column, since tags are saved on note-save
     private List<@Valid @NotNull(message = "'appUser.tag' cannot be null") Tag> tags;
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.REMOVE)

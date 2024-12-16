@@ -31,6 +31,7 @@ public class NoteController {
     
     @GetMapping("/get-all-by-appUser")
     @Operation(
+        description = "Gets all notes related to app user currently logged in. Uses default order 'created' - 'descending'",
         responses = {
             @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty). AuthRequirements: LOGGED_IN"),
             @ApiResponse(responseCode = "401", description = "Not logged in")
@@ -61,7 +62,7 @@ public class NoteController {
 
     @PostMapping("/save-all")
     @Operation(
-        description = "Save or update notes and their relations. AuthRequirements: LOGGED_IN",
+        description = "Save or update notes and their relations. Keep the order of incoming notes!. AuthRequirements: LOGGED_IN",
         responses = {
             @ApiResponse(responseCode = "200", description = "Saved or updated notes and their relations successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid param ('notes' may be empty but not null)"),

@@ -16,7 +16,7 @@ import de.code_notes.backend.entities.Note;
 @Repository
 public interface NoteRepository extends AbstractRepository<Note> {
 
-    List<Note> findAllByAppUserOauth2Id(String oauth2Id);
+    List<Note> findAllByAppUserOauth2IdOrderByCreatedDesc(String oauth2Id);
 
-    List<Note> findAllByAppUserEmailAndAppUserOauth2IdIsNull(String email);
+    List<Note> findAllByAppUserEmailAndAppUserOauth2IdIsNullOrderByCreatedDesc(String email);
 }

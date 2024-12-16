@@ -45,9 +45,9 @@ public class NoteService extends AbstractService<Note> {
         AppUser appUser = this.appUserService.getCurrent();
 
         if (this.oauth2Service.isOauth2Session())
-            return this.noteRepository.findAllByAppUserOauth2Id(appUser.getOauth2Id());
+            return this.noteRepository.findAllByAppUserOauth2IdOrderByCreatedDesc(appUser.getOauth2Id());
 
-        return this.noteRepository.findAllByAppUserEmailAndAppUserOauth2IdIsNull(appUser.getEmail());
+        return this.noteRepository.findAllByAppUserEmailAndAppUserOauth2IdIsNullOrderByCreatedDesc(appUser.getEmail());
     }
 
 
