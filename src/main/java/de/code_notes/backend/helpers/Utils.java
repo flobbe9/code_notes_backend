@@ -86,7 +86,7 @@ public class Utils {
     public static final String RESET_PASSWORD_TOKEN_URL_QUERY_PARAM = "token";
     // frontend
     public static final String LOGIN_PATH = "/login";
-    public static final String DATA_POLICY_PATH = "/privacy-policy";
+    public static final String PRIVACY_POLICY_PATH = "/privacy-policy";
     public static final String CONTACT_PATH = "/contact";
     public static final String RESET_PASSWORD_PATH = "/reset-password-by-token";
 

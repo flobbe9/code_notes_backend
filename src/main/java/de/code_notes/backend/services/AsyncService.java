@@ -37,11 +37,11 @@ public class AsyncService {
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
     
-    @Value("${FRONTEND_BASE_URL}" + Utils.DATA_POLICY_PATH)
+    @Value("${FRONTEND_BASE_URL}" + Utils.PRIVACY_POLICY_PATH)
     private String DATA_POLICY_URL;
     
     @Value("${FRONTEND_BASE_URL}" + Utils.CONTACT_PATH)
-    private String ABOUT_URL;
+    private String CONTACT_URL;
 
     @Value("classpath:mail/accountConfirmationMail.html")
     private Resource accountConfirmationMail;
@@ -51,6 +51,9 @@ public class AsyncService {
         
     @Value("classpath:mail/passwordHasBeenResetMail.html")
     private Resource passwordHasBeenResetMail;
+            
+    @Value("classpath:mail/appUserHasBeenDeletedMail.html")
+    private Resource appUserHasBeenDeletedMail;
     
     @Value("classpath:assets/img/faviconWithLabel.png")
     private Resource faviconWithLabel;
@@ -80,7 +83,7 @@ public class AsyncService {
             this.FRONTEND_BASE_URL,
             this.BASE_URL + CONFIRM_ACCOUNT_PATH + "?token=" + confirmationToken.getToken(),
             this.DATA_POLICY_URL,
-            this.ABOUT_URL
+            this.CONTACT_URL
         );
             
         String subject = "Confirm your account | Code Notes";
@@ -117,7 +120,7 @@ public class AsyncService {
             this.FRONTEND_BASE_URL,
             this.FRONTEND_BASE_URL + RESET_PASSWORD_PATH + "?" + RESET_PASSWORD_TOKEN_URL_QUERY_PARAM + "=" + confirmationToken.getToken(),
             this.DATA_POLICY_URL,
-            this.ABOUT_URL
+            this.CONTACT_URL
         );
             
         String subject = "Reset password | Code Notes";
@@ -145,7 +148,32 @@ public class AsyncService {
             this.FRONTEND_BASE_URL,
             this.BASE_URL + "/app-user/send-reset-password-mail?to=" + to + "&redirectTo=" + this.FRONTEND_BASE_URL + LOGIN_PATH,
             this.DATA_POLICY_URL,
-            this.ABOUT_URL 
+            this.CONTACT_URL 
+        );
+
+        this.mailService.sendMail(
+            to, 
+            subject, 
+            mailHtml, 
+            true, 
+            Map.of("faviconWithLabel", Map.of(MailService.getFileAsAttachment(this.faviconWithLabel.getContentAsByteArray()), MediaType.IMAGE_PNG_VALUE)),
+            null
+        );
+    }
+    
+
+    @Async
+    public void sendAppUserHasBeenDeletedMail(String to) throws IllegalArgumentException, IllegalStateException, IOException, MessagingException {
+
+        assertArgsNotNullAndNotBlankOrThrow(to);
+
+        String subject = "Account deleted | Code Notes";
+
+        String mailHtml = htmlMailToString(
+            this.appUserHasBeenDeletedMail, 
+            this.FRONTEND_BASE_URL,
+            this.DATA_POLICY_URL,
+            this.CONTACT_URL 
         );
 
         this.mailService.sendMail(
