@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.helpers.Utils;
 import de.code_notes.backend.services.AppUserService;
+import de.code_notes.backend.services.AsyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
@@ -52,6 +53,9 @@ public class AppUserController {
 
     @Autowired
     private AppUserService appUserService;
+
+    @Autowired
+    private AsyncService asyncService;
 
     
     @PostMapping("/save")
@@ -151,7 +155,7 @@ public class AppUserController {
 
     @DeleteMapping("/delete-current")
     @Operation(
-        description = "Delete app user currently logged in and logout. AuthRequirements: LOGGED_IN", 
+        description = "Delete app user currently logged in, send a mail notice and logout. AuthRequirements: LOGGED_IN", 
         responses = {
             @ApiResponse(responseCode = "200", description = "AppUser deleted (if existed) and logged out"),
             @ApiResponse(responseCode = "401", description = "Not logged in"),
@@ -159,9 +163,13 @@ public class AppUserController {
         }
     )
     // dont return anything here, since 401 would be thrown after logout call
-    public void deleteCurrent(HttpServletResponse response) throws JsonProcessingException, IllegalArgumentException, IOException {
+    public void deleteCurrent(HttpServletResponse response) throws JsonProcessingException, IllegalArgumentException, IOException, IllegalStateException, MessagingException {
+
+        AppUser currentAppUser = this.appUserService.getCurrent();
 
         this.appUserService.deleteCurrent();
+
+        this.asyncService.sendAppUserHasBeenDeletedMail(currentAppUser.getEmail());
 
         Utils.writeToResponse(response, OK, "Deleted current user and logged out");
 
@@ -239,7 +247,11 @@ public class AppUserController {
     
     @GetMapping("/send-reset-password-mail")
     @Operation(
-        description = "Send mail to given 'to' user to reset their password. Optionally redirect to frontend /login appending the error status code",
+        description = 
+        """
+            Send mail to given 'to' user to reset their password. Optionally redirect to frontend /login appending the error status code, or, if redirect url is ommited,
+            return the error object.
+        """,
         responses = {
             @ApiResponse(responseCode = "200", description = "Mail has been sent, user is valid candidate for reset-password mail"),
             @ApiResponse(responseCode = "400", description = "Invalid args"),
@@ -249,9 +261,10 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Any other unexpected error")
         }
     )
-    public void sendResetPasswordMail(@RequestParam @NotBlank(message = "'to' cannot be blank") String to, @RequestParam Optional<String> redirectTo, HttpServletResponse response) throws ResponseStatusException, IllegalArgumentException, IllegalStateException, MessagingException, IOException {
+    public void sendResetPasswordMail(@RequestParam @NotBlank(message = "'to' cannot be blank") String to, @RequestParam Optional<String> redirectTo, HttpServletResponse response) throws Exception {
 
         String redirectUrl = redirectTo.orElse("");
+        Exception exception = null;
 
         try {
             this.appUserService.sendResetPasswordMail(to);
@@ -259,14 +272,21 @@ public class AppUserController {
 
         } catch (ResponseStatusException e) {
             redirectUrl += "/?%s=%s".formatted(SEND_RESET_PASSWORD_MAIL_STATUS_PARAM, e.getStatusCode().value());
-            CustomExceptionHandler.logPackageStackTrace(e, e.getReason());
+            exception = e;
 
         } catch (Exception e) {
             redirectUrl += "/?%s=500".formatted(SEND_RESET_PASSWORD_MAIL_STATUS_PARAM);
-            CustomExceptionHandler.logPackageStackTrace(e);
+            exception = e;
         }
 
-        if (redirectTo.isPresent())
+        if (redirectTo.isPresent()) {
             Utils.redirect(response, redirectUrl);
+
+            if (exception != null)
+                CustomExceptionHandler.logPackageStackTrace(exception);
+
+        } else if (exception != null) {
+            throw exception;
+        }
     }
 }
