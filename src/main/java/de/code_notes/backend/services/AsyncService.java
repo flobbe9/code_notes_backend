@@ -40,7 +40,7 @@ public class AsyncService {
     @Value("${FRONTEND_BASE_URL}" + Utils.DATA_POLICY_PATH)
     private String DATA_POLICY_URL;
     
-    @Value("${FRONTEND_BASE_URL}" + Utils.ABOUT_PATH)
+    @Value("${FRONTEND_BASE_URL}" + Utils.CONTACT_PATH)
     private String ABOUT_URL;
 
     @Value("classpath:mail/accountConfirmationMail.html")

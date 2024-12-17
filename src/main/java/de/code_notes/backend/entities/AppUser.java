@@ -137,6 +137,13 @@ public class AppUser extends AbstractEntity implements UserDetails {
     }
 
 
+    /**
+     * Update all fields of {@code this} instance that are retrieved from an oauth2 user.
+     * 
+     * @param oauth2AppUser containing values to use
+     * @return {@code this}
+     * @throws IllegalArgumentException
+     */
     public AppUser copyOauth2Fields(AppUser oauth2AppUser) throws IllegalArgumentException {
 
         assertArgsNotNullAndNotBlankOrThrow(oauth2AppUser);
