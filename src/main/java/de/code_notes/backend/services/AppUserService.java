@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,6 +45,12 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Log4j2
 public class AppUserService extends AbstractService<AppUser> implements UserDetailsService {
+    
+    @Value("${DEFAULT_ADMIN_EMAIL}")
+    private String DEFAULT_ADMIN_EMAIL;
+    
+    @Value("${DEFAULT_ADMIN_PASSWORD}")
+    private String DEFAULT_ADMIN_PASSWORD;
 
     @Autowired
     private AppUserRepository appUserRepository;
@@ -766,5 +773,32 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         ConfirmationToken confirmationToken = this.confirmationTokenService.createNew(appUser, ConfirmationToken.HOURS_BEFORE_EXPIRES_PASSWORD_RESET);
 
         this.asyncService.sendResetPasswordMail(confirmationToken);
+    }
+    
+
+    /**
+     * Save or update the user with {@link #DEFAULT_ADMIN_EMAIL}. In any case enable the appUser, set {@code role} to {@code ADMIN} and password to {@link #DEFAULT_ADMIN_PASSWORD}. <p>
+     * 
+     * Should be called once on application start up.
+     */
+    public void registerDefaultAdminUser() {
+
+        AppUser existingAdmin = loadByEmail(this.DEFAULT_ADMIN_EMAIL);
+
+        if (existingAdmin == null) {
+            existingAdmin = new AppUser(
+                this.DEFAULT_ADMIN_EMAIL,
+                this.DEFAULT_ADMIN_PASSWORD,
+                AppUserRole.ADMIN
+            );
+
+        } else {
+            existingAdmin.setRole(AppUserRole.ADMIN);
+            existingAdmin.setPassword(this.passwordEncoder.encode(this.DEFAULT_ADMIN_PASSWORD));
+        }
+
+        existingAdmin.setEnabled(true);
+
+        save(existingAdmin);
     }
 }

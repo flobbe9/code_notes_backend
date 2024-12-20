@@ -57,9 +57,14 @@ public class Oauth2Service {
      */
     public boolean isOauth2Session() {
 
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return principal != null && principal instanceof DefaultOAuth2User;
 
-        return principal != null && principal instanceof DefaultOAuth2User;
+        // propably no authentication obj in context yet, may happen on application startup
+        } catch (NullPointerException e) {
+            return false;
+        }
     }
 
 
