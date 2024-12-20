@@ -18,6 +18,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 
@@ -97,11 +98,12 @@ public class SecurityConfig {
             http.authorizeHttpRequests(request -> request
                 .requestMatchers(getRoutesPriorToLogin())
                     .permitAll()
+                .requestMatchers(getSwaggerPaths())
+                    .hasRole("ADMIN")
                 .anyRequest()
                     .authenticated());
         }
 
-        // login
         http.formLogin(formLogin -> formLogin
             .successHandler(this.customLoginSuccessHandler)
             .failureHandler(this.customLoginFailureHandler));
@@ -110,7 +112,6 @@ public class SecurityConfig {
             .successHandler(this.customLoginSuccessHandler)
             .failureHandler(this.customLoginFailureHandler));
 
-        // logout
         http.logout(logout -> logout
             .logoutSuccessHandler(this.customLogoutSuccessHandler));
 
@@ -118,7 +119,6 @@ public class SecurityConfig {
         http.exceptionHandling(exceptionHandling -> exceptionHandling
             .authenticationEntryPoint(this.customUnAuthenticatedHandler));
 
-        // cors
         http.cors(cors -> cors
             .configurationSource(corsConfig()));
 
@@ -184,9 +184,8 @@ public class SecurityConfig {
 
         // case: development
         if ("development".equalsIgnoreCase(this.ENV)) {
-            routesPriorLogin.addAll(getSwaggerPaths()); 
+            routesPriorLogin.addAll(List.of(getSwaggerPaths())); 
             routesPriorLogin.addAll(List.of(
-                "/app-user/save",
                 "/test"
             ));
         }
@@ -196,13 +195,13 @@ public class SecurityConfig {
 
 
     /**
-     * List of paths swagger uses. Assuming that no paths have been changed in properties file.
+     * Array of paths swagger uses. Assuming that no paths have been changed in properties file.
      * 
-     * @return fixed size list of paths swagger uses
+     * @return fixed size array of paths swagger uses
      */
-    private List<String> getSwaggerPaths() {
+    private String[] getSwaggerPaths() {
 
-        return List.of(
+        return new String[] {
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs/**",
@@ -210,6 +209,6 @@ public class SecurityConfig {
             "/swagger-resources/**",
             "/configuration/security",
             "/webjars/**"
-        );
+        };
     }
 }
