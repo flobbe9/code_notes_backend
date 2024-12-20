@@ -1,5 +1,7 @@
 package de.code_notes.backend.config;
 
+import static de.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlank;
+
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import de.code_notes.backend.helpers.Utils;
 import de.code_notes.backend.services.AppUserService;
@@ -27,6 +31,9 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 
+    /** The url query param key that is appended to the redirect url to start page. Also hard coded in "constatns.ts" */
+    public static final String START_PAGE_STATUS_URL_QUERY_PARAM = "start-page";
+
     @Autowired
     private AppUserService appUserService;
 
@@ -37,7 +44,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
     private String FRONTEND_BASE_URL;
 
     @Value("${CSRF_TOKEN_URL_QUERY_PARAM}")
-    private String CSRF_TOKEN_URL_QUERY_PARAM;    
+    private String CSRF_TOKEN_URL_QUERY_PARAM;
 
 
     /**
@@ -49,28 +56,24 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
+        boolean isOauth2 = this.oauth2Service.isOauth2Session(authentication.getPrincipal());
+
         try {
-            // save user
             this.appUserService.saveCurrentOauth2(authentication.getPrincipal());
 
-            // retrieve csrf
             CsrfToken csrfToken = getCsrfTokenByHttpRequest(request);
             String csrfTokenValue = csrfToken == null ? "" : csrfToken.getToken();
             
             // case: oauth2
-            if (this.oauth2Service.isOauth2Session(authentication.getPrincipal()))
+            if (isOauth2)
                 Utils.redirect(response, this.FRONTEND_BASE_URL + "/?%s=%s".formatted(this.CSRF_TOKEN_URL_QUERY_PARAM, csrfTokenValue));
 
             // case: normal login
             else
                 Utils.writeToResponse(response, csrfTokenValue);
 
-        } catch (ResponseStatusException e) {
-            Utils.writeToResponse(response, HttpStatus.valueOf(e.getStatusCode().value()), e);
-            this.appUserService.logout();
-            
         } catch (Exception e) {
-            Utils.writeToResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, e);
+            writeOrRedirectResponse(response, isOauth2, this.FRONTEND_BASE_URL, e);
             this.appUserService.logout();
         }
     }
@@ -92,5 +95,21 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
         Object requestAttribute = request.getAttribute(CsrfToken.class.getName());
 
         return requestAttribute instanceof CsrfToken ? (CsrfToken) request.getAttribute(CsrfToken.class.getName()) : null;
+    }
+
+
+    private void writeOrRedirectResponse(HttpServletResponse response, boolean isOauth2, String redirectPath, Exception exception) throws JsonProcessingException, IllegalArgumentException, IOException {
+
+        assertArgsNotNullAndNotBlank(response, 1, redirectPath, exception);
+
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        if (exception instanceof ResponseStatusException)
+            status = HttpStatus.valueOf(((ResponseStatusException) exception).getStatusCode().value());
+
+        if (isOauth2)
+            Utils.redirect(response, redirectPath + "/?%s=%s".formatted(START_PAGE_STATUS_URL_QUERY_PARAM, status.value()));
+
+        else
+            Utils.writeToResponse(response, status, exception);
     }
 }

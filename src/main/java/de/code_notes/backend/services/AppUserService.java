@@ -515,7 +515,7 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
 
 
     /**
-     * Invalidates current session. Wont throw if already logged out.
+     * Invalidates current session. Wont throw if already logged out. Don't call this asynchronously as the current request is needed to get the session
      */
     public void logout() {
 

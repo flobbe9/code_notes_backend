@@ -76,7 +76,7 @@ public class Oauth2Service {
     
 
     /**
-     * Get the access token of the current oauth2 session.
+     * Get the access token of the current oauth2 session. Don't call this asynchronously as the current request is needed.
      * 
      * @param clientRegistrationId the name of the oauth2 provider as specified in "application.yml" under {@code spring.security.oauth2.client.registration.[clientRegistrationId]}. E.g. "google"
      * @return the access token of the current oauth2 session that is beeing retrieved after successful login

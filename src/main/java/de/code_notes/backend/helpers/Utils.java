@@ -404,16 +404,24 @@ public class Utils {
      */
     public static HttpServletRequest getCurrentRequest() {
 
-        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        try {
+            return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            
+        // possibly no thread-bound request found, happens when called in an asynchronous method
+        } catch (IllegalStateException e) {
+            return null;
+        }
     }
 
 
     /**
-     * @return the path of the request currently beeing processed
+     * @return the path of the request currently beeing processed or an empty string if no request is available for the current thread
      */
     public static String getReqeustPath() {
 
-        return getCurrentRequest().getServletPath();
+        HttpServletRequest request = getCurrentRequest();
+
+        return request == null ? "" : request.getServletPath();
     }
 
 
@@ -537,16 +545,17 @@ public class Utils {
     /**
      * Overload. Pass a {@link CustomExceptionFormat} with given {@code status} and {@code exception.message} as {@code object} arg. <p>
      * 
-     * Will log.
+     * Will log exception if not {@code null}.
      * 
      * @param response
      * @param status
      * @param message
+     * @param exception 
      * @throws JsonProcessingException
      * @throws IOException
      * @throws IllegalArgumentException
      */
-    public static void writeToResponse(HttpServletResponse response, HttpStatus status, Exception exception) throws JsonProcessingException, IOException, IllegalArgumentException {
+    public static void writeToResponse(HttpServletResponse response, HttpStatus status, @Nullable Exception exception) throws JsonProcessingException, IOException, IllegalArgumentException {
 
         CustomExceptionHandler.logPackageStackTrace(exception);
         writeToResponse(response, status, exception.getMessage());
