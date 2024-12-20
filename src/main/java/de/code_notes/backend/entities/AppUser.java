@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import de.code_notes.backend.abstracts.AbstractEntity;
 import de.code_notes.backend.abstracts.AppUserRole;
+import de.code_notes.backend.abstracts.NeedsDeletionRecord;
 import de.code_notes.backend.helpers.Utils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
@@ -43,7 +44,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AppUser extends AbstractEntity implements UserDetails {
+public class AppUser extends AbstractEntity implements UserDetails, NeedsDeletionRecord {
 
     @Column(unique = true, nullable = false)
     @Pattern(regexp = Utils.EMAIL_REGEX, message = "'email' does not match pattern") // includes "notBlank"
@@ -219,5 +220,12 @@ public class AppUser extends AbstractEntity implements UserDetails {
     public void enable() {
 
         this.enabled = true;
+    }
+
+
+    @Override
+    public String getUniqueId() {
+
+        return this.email;
     }
 }

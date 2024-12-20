@@ -15,7 +15,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class ConfirmationTokenDeletionCron {
 
-    private static final int CONFIRMATION_TOKEN_MONTHS_BEFORE_DELETION = 6;
+    private static final int MONTHS_BEFORE_DELETION = 6;
 
     @Autowired
     private ConfirmationTokenService confirmationTokenService;
@@ -27,7 +27,7 @@ public class ConfirmationTokenDeletionCron {
 
         log.info("Deleting old confirmation tokens...");
 
-        this.confirmationTokenService.deleteOldConfirmationTokens(CONFIRMATION_TOKEN_MONTHS_BEFORE_DELETION);
+        this.confirmationTokenService.deleteOldConfirmationTokens(MONTHS_BEFORE_DELETION);
 
         log.info("Finished deleting old confirmation tokens.");
     }

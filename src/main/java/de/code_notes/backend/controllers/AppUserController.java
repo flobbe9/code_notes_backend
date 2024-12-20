@@ -26,6 +26,7 @@ import de.code_notes.backend.entities.AppUser;
 import de.code_notes.backend.helpers.Utils;
 import de.code_notes.backend.services.AppUserService;
 import de.code_notes.backend.services.AsyncService;
+import de.code_notes.backend.services.DeletedEntityRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
@@ -41,7 +42,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/app-user")
-public class AppUserController {
+public class AppUserController extends DeletedEntityRecordController {
 
     /** The url query param key that is appended to the redirect url after account confirmation. Also hard coded in "constatns.ts" */
     private static final String CONFIRM_ACCOUNT_STATUS_PARAM = "confirm-account-status-code";
@@ -57,7 +58,10 @@ public class AppUserController {
     @Autowired
     private AsyncService asyncService;
 
-    
+    @Autowired
+    private DeletedEntityRecordService deletedEntityRecordService;
+
+
     @PostMapping("/save")
     @Operation(
         description = "Save new (id null) or update (valid id). AuthRequirements: LOGGED_IN", 
@@ -155,7 +159,7 @@ public class AppUserController {
 
     @DeleteMapping("/delete-current")
     @Operation(
-        description = "Delete app user currently logged in, send a mail notice and logout. AuthRequirements: LOGGED_IN", 
+        description = "Delete app user currently logged in, send a mail notice and logout. Will save a deletion-record to db. AuthRequirements: LOGGED_IN", 
         responses = {
             @ApiResponse(responseCode = "200", description = "AppUser deleted (if existed) and logged out"),
             @ApiResponse(responseCode = "401", description = "Not logged in"),
@@ -169,11 +173,19 @@ public class AppUserController {
 
         this.appUserService.deleteCurrent();
 
-        this.asyncService.sendAppUserHasBeenDeletedMail(currentAppUser.getEmail());
+        try {
+            this.deletedEntityRecordService.saveFor(currentAppUser);
+            
+            this.asyncService.sendAppUserHasBeenDeletedMail(currentAppUser.getEmail());
+            
+            Utils.writeToResponse(response, OK, "Deleted current user and logged out");
 
-        Utils.writeToResponse(response, OK, "Deleted current user and logged out");
+        } catch (Exception e) {
+            throw e;
 
-        this.appUserService.logout();
+        } finally {
+            this.appUserService.logout();
+        }
     }
 
 
@@ -288,5 +300,12 @@ public class AppUserController {
         } else if (exception != null) {
             throw exception;
         }
+    }
+
+
+    @Override
+    protected String getDeletedEntityClassName() {
+
+        return new AppUser().getDeletedEntityClassName();
     }
 }
