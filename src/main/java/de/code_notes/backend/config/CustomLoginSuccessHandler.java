@@ -32,7 +32,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     /** The url query param key that is appended to the redirect url to start page. Also hard coded in "constatns.ts" */
-    public static final String START_PAGE_STATUS_URL_QUERY_PARAM = "start-page";
+    public static final String OAUTH2_LOGIN_ERROR_STATUS_URL_QUERY_PARAM = "oauth2-login-error";
 
     @Autowired
     private AppUserService appUserService;
@@ -42,9 +42,6 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
-
-    @Value("${CSRF_TOKEN_URL_QUERY_PARAM}")
-    private String CSRF_TOKEN_URL_QUERY_PARAM;
 
 
     /**
@@ -66,14 +63,14 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
             
             // case: oauth2
             if (isOauth2)
-                Utils.redirect(response, this.FRONTEND_BASE_URL + "/?%s=%s".formatted(this.CSRF_TOKEN_URL_QUERY_PARAM, csrfTokenValue));
+                Utils.redirect(response, this.FRONTEND_BASE_URL + "/?%s=%s".formatted(Utils.CSRF_TOKEN_URL_QUERY_PARAM, csrfTokenValue));
 
             // case: normal login
             else
                 Utils.writeToResponse(response, csrfTokenValue);
 
         } catch (Exception e) {
-            writeOrRedirectResponse(response, isOauth2, this.FRONTEND_BASE_URL, e);
+            writeOrRedirectResponse(response, isOauth2, this.FRONTEND_BASE_URL + Utils.LOGIN_PATH, e);
             this.appUserService.logout();
         }
     }
@@ -107,7 +104,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
             status = HttpStatus.valueOf(((ResponseStatusException) exception).getStatusCode().value());
 
         if (isOauth2)
-            Utils.redirect(response, redirectPath + "/?%s=%s".formatted(START_PAGE_STATUS_URL_QUERY_PARAM, status.value()));
+            Utils.redirect(response, redirectPath + "/?%s=%s".formatted(OAUTH2_LOGIN_ERROR_STATUS_URL_QUERY_PARAM, status.value()));
 
         else
             Utils.writeToResponse(response, status, exception);

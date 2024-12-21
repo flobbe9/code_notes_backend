@@ -80,15 +80,17 @@ public class Utils {
     public static final String OAUTH2_CLIENT_REGISTRATION_ID_GITHUB = "github";
     public static final String OAUTH2_CLIENT_REGISTRATION_ID_AZURE = "azure";
 
-    // backend
     public static final String CONFIRM_ACCOUNT_PATH = "/app-user/confirm-account";
     /** Also hard coded in "constants.ts" */
     public static final String RESET_PASSWORD_TOKEN_URL_QUERY_PARAM = "token";
-    // frontend
+    /** Also hard coded in "constants.ts" */
+    public static final String CSRF_TOKEN_URL_QUERY_PARAM = "csrf";
     public static final String LOGIN_PATH = "/login";
     public static final String PRIVACY_POLICY_PATH = "/privacy-policy";
     public static final String CONTACT_PATH = "/contact";
     public static final String RESET_PASSWORD_PATH = "/reset-password-by-token";
+
+    public static final String DEFAULT_SENDER_EMAIL = "noreply.code-notes@gmail.com";
 
     /** 
      * At least <p>

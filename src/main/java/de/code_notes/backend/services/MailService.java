@@ -18,6 +18,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import de.code_notes.backend.helpers.Utils;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
@@ -32,9 +33,6 @@ public class MailService {
 
     @Autowired
     private JavaMailSenderImpl javaMailSender;
-
-    @Value("${DEFAULT_SENDER_EMAIL}")
-    private String DEFAULT_SENDER_EMAIL;
 
     @Value("${SMTP_AUTH_ENABLE}")
     private String SMTP_AUTH_ENABLE;
@@ -103,7 +101,7 @@ public class MailService {
                          @Nullable Map<String, InputStreamSource> attachments
     ) throws MessagingException {
 
-        sendMail(to, this.DEFAULT_SENDER_EMAIL, subject, text, html, inlines, attachments);
+        sendMail(to, Utils.DEFAULT_SENDER_EMAIL, subject, text, html, inlines, attachments);
     }
 
     /**

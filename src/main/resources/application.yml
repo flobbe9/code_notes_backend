@@ -94,3 +94,9 @@ spring:
                     auth: ${SMTP_AUTH_ENABLE}
                     starttls:
                         enable: ${MAIL_STARTTLS_ENABLE}
+
+logging:
+    level:
+        de:
+            code_notes:
+                backend: ${LOG_LEVEL}

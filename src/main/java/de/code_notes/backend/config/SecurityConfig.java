@@ -178,9 +178,9 @@ public class SecurityConfig {
             CONFIRM_ACCOUNT_PATH,
             "/app-user/resend-confirmation-mail",
             "/app-user/check-logged-in",
-            "/send-reset-password-mail",
+            "/app-user/send-reset-password-mail",
             "/app-user/reset-password-by-token"
-            ));
+        ));
 
         // case: development
         if ("development".equalsIgnoreCase(this.ENV)) {
