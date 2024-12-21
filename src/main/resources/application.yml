@@ -100,3 +100,6 @@ logging:
         de:
             code_notes:
                 backend: ${LOG_LEVEL}
+    file:
+        path: ${LOG_FILE_PATH}
+        
