@@ -12,6 +12,7 @@ COPY ./src ./src
 COPY ./build.gradle \
      ./settings.gradle \
      ./.env \
+     ./.env.secrets.pipeline \
      ./
 
 # -i: case-sensitive, s: first occurrence

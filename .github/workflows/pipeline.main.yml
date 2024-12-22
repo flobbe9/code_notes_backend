@@ -18,9 +18,10 @@ jobs:
         with: 
           distribution: 'temurin'
           java-version: '17'
-      - name: Start db
+      - name: Start db for build context
         run: docker compose -f 'docker-compose.dev.yml' up db -d   
-      - run: gradle clean build -i
+      - name: Build and test with informative logs (-i)
+        run: gradle clean build -i
       # - run: docker compose -f 'docker-compose.dev.yml' build api --build-arg GRADLE_BUILD_ARGS='-i'
   
 
