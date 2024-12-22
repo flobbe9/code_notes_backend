@@ -3,7 +3,7 @@ FROM gradle:8.8-jdk17
 WORKDIR /app
 
 ARG VERSION
-ARG GRADLE_BUILD_ARGS=
+ARG GRADLE_BUILD_ARGS
 
 COPY ./src ./src
 COPY ./build.gradle \
@@ -26,6 +26,8 @@ WORKDIR /app
 ARG VERSION
 ARG API_NAME
 ENV JAR_FILE_NAME=${API_NAME}-${VERSION}.jar
+ARG DB_HOST
+ENV DB_HOST=${DB_HOST}
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
 COPY ./.env \

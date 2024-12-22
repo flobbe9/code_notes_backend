@@ -7,19 +7,21 @@ services:
         - ${DB_PORT}:${DB_PORT}
     environment:
       MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
-      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       TZ: ${TZ}
-    command: --mysql-native-password=ON # see mysql_8.4._create_user.md for explanation
+    # command: --mysql-native-password=ON # see mysql_8.4._create_user.md for explanation
     healthcheck:
       test: mysqladmin ping -h db
-      start_period: 20s
+      start_period: 10s
       interval: 5s
       timeout: 5s
       retries: 10
+    volumes:
+      - ./volumes/db/:/var/lib/mysql/
     
-  api:
+  backend:
     depends_on: 
       db: 
         condition: service_healthy
@@ -33,11 +35,15 @@ services:
     ports: 
       - ${PORT}:${PORT}
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:${DB_PORT}/${DB_NAME}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       MAIL_HOST: maildev
+      DB_HOST: db
       TZ: ${TZ}
+    healthcheck:
+      test: wget --no-verbose --no-check-certificate --tries=1 --spider ${PROTOCOL}://backend:${PORT}/logout || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
 
   maildev:
     image: maildev/maildev
