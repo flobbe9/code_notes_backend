@@ -21,7 +21,7 @@ jobs:
       - name: Start db
         run: docker compose -f 'docker-compose.dev.yml' up db -d    
       - name: wait for db to startup
-        run: sleep 10s
+        run: sleep 20s
         shell: bash  
       - run: gradle clean build
   
