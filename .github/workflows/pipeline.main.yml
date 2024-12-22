@@ -21,9 +21,9 @@ jobs:
       - name: Start db
         run: docker compose -f 'docker-compose.dev.yml' up db -d    
       - name: wait for db to startup
-        run: sleep 20s
+        run: sleep 40s
         shell: bash  
-      - run: gradle clean build
+      - run: gradle clean build --scan
   
 
   push_to_Dockerhub:
@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout repository 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
   
       - name: move .env vars to pipeline
         run: |
@@ -68,7 +68,7 @@ jobs:
 #     needs: push_to_Dockerhub
 
 #     steps:
-#       - uses: appleboy/ssh-action@v1.0.3
+#       - uses: appleboy/ssh-action@v1.2.0
 #         with: 
 #           host: word-light.de
 #           username: ${{ secrets.SSH_USER_NAME }}
