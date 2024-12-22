@@ -66,6 +66,8 @@ jobs:
     # needs: push_to_Dockerhub
 
     steps:
+      - name: Checkout repository 
+        uses: actions/checkout@v4.2.2
       - name: move .env vars to pipeline
         run: |
           echo $(cat .env | grep '^PORT=.*$') >> $GITHUB_ENV
