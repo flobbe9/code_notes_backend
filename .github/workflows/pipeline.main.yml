@@ -75,7 +75,7 @@ jobs:
             host: ${{ vars.SSH_HOST }}
             username: ${{ secrets.SSH_USER_NAME }}
             password: ${{ secrets.SSH_PASSWORD }}
-            source: writeToEnvfile.sh
+            source: writeToEnvFile.sh
             target: ./${{ vars.SSH_TARGET_FOLDER }}
             debug: true
 
