@@ -19,7 +19,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Start db
-        run: docker compose -f 'docker-compose.dev.yml' up db -d    
+        run: docker compose -f 'docker-compose.dev.yml' up db -d   
+      - run: chmod +x ./gradlew 
       - run: ./gradlew clean build -i
   
 
