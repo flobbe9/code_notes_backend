@@ -4,7 +4,7 @@ run-name: ${{ github.event.head_commit.message }}
 on: 
   push: 
     branches:
-      - dev
+      - main
 
 jobs:
   build:
@@ -61,21 +61,51 @@ jobs:
             VERSION=${{env.VERSION}}
             API_NAME=${{env.API_NAME}}
 
-#   deploy_to_server:
-#     runs-on: ubuntu-latest
-#     needs: push_to_Dockerhub
+  deploy_to_server:
+    runs-on: ubuntu-latest
+    needs: push_to_Dockerhub
 
-#     steps:
-#       - uses: appleboy/ssh-action@v1.2.0
-#         with: 
-#           host: code-notes.net
-#           username: ${{ secrets.SSH_USER_NAME }}
-#           password: ${{ secrets.SSH_PASSWORD }}
-#           debug: true
-#           script: |
-#             docker-compose pull backend
+    steps:
+      - name: move .env vars to pipeline
+        run: |
+          echo $(cat .env | grep '^PORT=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^MAIL_HOST=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^MAIL_PORT=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^LOG_FILE_PATH=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^DB_PORT=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^DB_VERSION=.*$') >> $GITHUB_ENV
+        shell: bash
+      - uses: appleboy/ssh-action@v1.2.0
+        with: 
+          host: code-notes.net
+          username: ${{ secrets.SSH_USER_NAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          debug: true
+          script: |
+            docker-compose pull backend
 
-#             yes | docker rm $(docker container ls --all --filter=ancestor=$(docker images -f "dangling=true" -q) --format "{{.ID}}") --force
-#             yes | docker image rm $(docker images -f "dangling=true" -q)
-#             docker-compose up -d
-#             yes | docker volume prune
+            ./code_notes/writeToEnvFile.sh \
+              BACKEND_OAUTH2_CLIENT_ID_GOOGLE='${{secrets.OAUTH2_CLIENT_ID_GOOGLE}}' \
+              BACKEND_OAUTH2_CLIENT_SECRET_GOOGLE='${{secrets.OAUTH2_CLIENT_SECRET_GOOGLE}}' \
+              BACKEND_OAUTH2_CLIENT_ID_GITHUB='${{secrets.OAUTH2_CLIENT_ID_GITHUB}}' \
+              BACKEND_OAUTH2_CLIENT_SECRET_GITHUB='${{secrets.OAUTH2_CLIENT_SECRET_GITHUB}}' \
+              BACKEND_OAUTH2_CLIENT_ID_AZURE='${{secrets.OAUTH2_CLIENT_ID_AZURE}}' \
+              BACKEND_OAUTH2_CLIENT_SECRET_AZURE='${{secrets.OAUTH2_CLIENT_SECRET_AZURE}}' \
+              BACKEND_SSL_KEY_STORE_PASSWORD='${{secrets.SSL_KEY_STORE_PASSWORD}}' \
+              BACKEND_PORT='${{env.PORT}}' \
+              BACKEND_MAIL_HOST='${{env.MAIL_HOST}}' \
+              BACKEND_MAIL_PORT='${{env.MAIL_PORT}}' \
+              BACKEND_MAIL_USER='${{secrets.MAIL_USER}}' \
+              BACKEND_MAIL_PASSWORD='${{secrets.MAIL_PASSWORD}}' \
+              BACKEND_LOG_FILE_PATH='${{env.LOG_FILE_PATH}}' \
+              DB_USER='${{secrets.DB_USER}}' \
+              DB_PASSWORD='${{secrets.DB_PASSWORD}}' \
+              DB_ROOT_PASSWORD='${{secrets.DB_ROOT_PASSWORD}}' \
+              DB_PORT='${{env.DB_PORT}}' \
+              DB_VERSION='${{env.DB_VERSION}}' \
+              DOCKERHUB_USER='${{secrets.DOCKERHUB_USERNAME}}'
+
+            yes | docker rm $(docker container ls --all --filter=ancestor=$(docker images -f "dangling=true" -q) --format "{{.ID}}") --force
+            yes | docker image rm $(docker images -f "dangling=true" -q)
+            docker-compose up -d
+            yes | docker volume prune
