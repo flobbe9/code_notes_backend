@@ -86,7 +86,7 @@ spring:
     mail:
         host: ${MAIL_HOST}
         port: ${MAIL_PORT}
-        username: ${MAIL_USERNAME}
+        username: ${MAIL_USER}
         password: ${MAIL_PASSWORD}
         properties:
             mail:
