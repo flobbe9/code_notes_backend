@@ -5,6 +5,7 @@ WORKDIR /app
 ARG VERSION
 # skip tests by default because they need db. Set to '' in order to run tests
 ARG GRADLE_BUILD_ARGS='-x test'
+# these need to be present for tests but don't need a value
 ENV DEFAULT_ADMIN_EMAIL=
 ENV DEFAULT_ADMIN_PASSWORD=
 
@@ -28,8 +29,9 @@ ARG API_NAME
 ENV JAR_FILE_NAME=${API_NAME}-${VERSION}.jar
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
-COPY ./.env ./.env
-COPY ./.env.version ./.env.version
-COPY ./.env.secrets ./.env.secrets
+COPY ./.env \
+     ./.env.version \
+     ./.env.secret[s] \
+     ./
 
 ENTRYPOINT java -jar ${JAR_FILE_NAME}
