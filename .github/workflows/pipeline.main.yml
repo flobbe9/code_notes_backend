@@ -16,11 +16,11 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v4.6.0
         with: 
-          distribution: 'oracle'
+          distribution: 'temurin'
           java-version: '17'
       - name: Start db
         run: docker compose -f 'docker-compose.dev.yml' up db -d    
-      - run: gradle clean build -i
+      - run: ./gradlew clean build -i
   
 
   push_to_Dockerhub:
