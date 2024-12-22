@@ -35,7 +35,11 @@ public class CodeNotesBackendApplication {
      * @param args
      */
 	public static void main(String[] args) {
-        readEnvFiles("./.env.version", !"production".equals(System.getenv("ENV")) ? "./.env.secrets" : "");
+        readEnvFiles(
+            "./.env.version", 
+            "./.env.secrets.pipeline",
+            !"production".equals(System.getenv("ENV")) ? "./.env.secrets" : ""
+        );
 
 		SpringApplication.run(CodeNotesBackendApplication.class, args);
 	}
@@ -55,8 +59,8 @@ public class CodeNotesBackendApplication {
 
 
     /**
-     * Read other .env files and set key values as sys properties. 
-     * Wont override values from the actual .env file.<p>
+     * Read other .env files and set key values as sys properties. Arg env files will override each other but
+     * never the values in the actual .env file.<p>
      * 
      * Wont throw if an arg is blank.
      * 
