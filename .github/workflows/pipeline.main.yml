@@ -20,7 +20,7 @@ jobs:
           java-version: '17'
       - name: Start db
         run: docker compose -f 'docker-compose.dev.yml' up db -d    
-      - run: ./gradlew clean build -i
+      - run: gradle clean build -i
   
 
   push_to_Dockerhub:
