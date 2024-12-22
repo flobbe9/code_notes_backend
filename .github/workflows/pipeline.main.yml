@@ -7,63 +7,63 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository 
-        uses: actions/checkout@v4.2.2
-      - name: Setup JDK
-        uses: actions/setup-java@v4.6.0
-        with: 
-          distribution: 'temurin'
-          java-version: '17'
-      - name: Start db for build context
-        run: docker compose -f 'docker-compose.dev.yml' up db -d   
-      - name: Build and test with informative logs (-i)
-        run: gradle clean build -i
+#     steps:
+#       - name: Checkout repository 
+#         uses: actions/checkout@v4.2.2
+#       - name: Setup JDK
+#         uses: actions/setup-java@v4.6.0
+#         with: 
+#           distribution: 'temurin'
+#           java-version: '17'
+#       - name: Start db for build context
+#         run: docker compose -f 'docker-compose.dev.yml' up db -d   
+#       - name: Build and test with informative logs (-i)
+#         run: gradle clean build -i
   
 
-  push_to_Dockerhub:
-    runs-on: ubuntu-latest
-    needs: build
+#   push_to_Dockerhub:
+#     runs-on: ubuntu-latest
+#     needs: build
 
-    steps:
-      - name: Checkout repository 
-        uses: actions/checkout@v4.2.2
+#     steps:
+#       - name: Checkout repository 
+#         uses: actions/checkout@v4.2.2
   
-      - name: move .env vars to pipeline
-        run: |
-          echo $(cat .env.version | grep '^VERSION=.*$') >> $GITHUB_ENV
-          echo $(cat .env | grep '^API_NAME=.*$') >> $GITHUB_ENV
-        shell: bash
+#       - name: move .env vars to pipeline
+#         run: |
+#           echo $(cat .env.version | grep '^VERSION=.*$') >> $GITHUB_ENV
+#           echo $(cat .env | grep '^API_NAME=.*$') >> $GITHUB_ENV
+#         shell: bash
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+#       - name: Set up QEMU
+#         uses: docker/setup-qemu-action@v3
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#       - name: Login to Docker Hub
+#         uses: docker/login-action@v3
+#         with:
+#           username: ${{ secrets.DOCKERHUB_USERNAME }}
+#           password: ${{ secrets.DOCKERHUB_TOKEN }}
           
-      - name: Build and push
-        uses: docker/build-push-action@v6.10.0
-        with:
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:${{env.VERSION}}
-          build-args: |
-            VERSION=${{env.VERSION}}
-            API_NAME=${{env.API_NAME}}
+#       - name: Build and push
+#         uses: docker/build-push-action@v6.10.0
+#         with:
+#           push: true
+#           tags: |
+#             ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:latest
+#             ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:${{env.VERSION}}
+#           build-args: |
+#             VERSION=${{env.VERSION}}
+#             API_NAME=${{env.API_NAME}}
 
   deploy_to_server:
     runs-on: ubuntu-latest
-    needs: push_to_Dockerhub
+    # needs: push_to_Dockerhub
 
     steps:
       - name: move .env vars to pipeline
@@ -77,13 +77,12 @@ jobs:
         shell: bash
       - uses: appleboy/ssh-action@v1.2.0
         with: 
-          host: code-notes.net
+        # TODO replace with domain name
+          host: '85.215.119.220'
           username: ${{ secrets.SSH_USER_NAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           debug: true
           script: |
-            docker-compose pull backend
-
             ./code_notes/writeToEnvFile.sh \
               BACKEND_OAUTH2_CLIENT_ID_GOOGLE='${{secrets.OAUTH2_CLIENT_ID_GOOGLE}}' \
               BACKEND_OAUTH2_CLIENT_SECRET_GOOGLE='${{secrets.OAUTH2_CLIENT_SECRET_GOOGLE}}' \
@@ -104,8 +103,31 @@ jobs:
               DB_PORT='${{env.DB_PORT}}' \
               DB_VERSION='${{env.DB_VERSION}}' \
               DOCKERHUB_USER='${{secrets.DOCKERHUB_USERNAME}}'
+        #   script: |
+        #     docker-compose pull backend
 
-            yes | docker rm $(docker container ls --all --filter=ancestor=$(docker images -f "dangling=true" -q) --format "{{.ID}}") --force
-            yes | docker image rm $(docker images -f "dangling=true" -q)
-            docker-compose up -d
-            yes | docker volume prune
+        #     ./code_notes/writeToEnvFile.sh \
+        #       BACKEND_OAUTH2_CLIENT_ID_GOOGLE='${{secrets.OAUTH2_CLIENT_ID_GOOGLE}}' \
+        #       BACKEND_OAUTH2_CLIENT_SECRET_GOOGLE='${{secrets.OAUTH2_CLIENT_SECRET_GOOGLE}}' \
+        #       BACKEND_OAUTH2_CLIENT_ID_GITHUB='${{secrets.OAUTH2_CLIENT_ID_GITHUB}}' \
+        #       BACKEND_OAUTH2_CLIENT_SECRET_GITHUB='${{secrets.OAUTH2_CLIENT_SECRET_GITHUB}}' \
+        #       BACKEND_OAUTH2_CLIENT_ID_AZURE='${{secrets.OAUTH2_CLIENT_ID_AZURE}}' \
+        #       BACKEND_OAUTH2_CLIENT_SECRET_AZURE='${{secrets.OAUTH2_CLIENT_SECRET_AZURE}}' \
+        #       BACKEND_SSL_KEY_STORE_PASSWORD='${{secrets.SSL_KEY_STORE_PASSWORD}}' \
+        #       BACKEND_PORT='${{env.PORT}}' \
+        #       BACKEND_MAIL_HOST='${{env.MAIL_HOST}}' \
+        #       BACKEND_MAIL_PORT='${{env.MAIL_PORT}}' \
+        #       BACKEND_MAIL_USER='${{secrets.MAIL_USER}}' \
+        #       BACKEND_MAIL_PASSWORD='${{secrets.MAIL_PASSWORD}}' \
+        #       BACKEND_LOG_FILE_PATH='${{env.LOG_FILE_PATH}}' \
+        #       DB_USER='${{secrets.DB_USER}}' \
+        #       DB_PASSWORD='${{secrets.DB_PASSWORD}}' \
+        #       DB_ROOT_PASSWORD='${{secrets.DB_ROOT_PASSWORD}}' \
+        #       DB_PORT='${{env.DB_PORT}}' \
+        #       DB_VERSION='${{env.DB_VERSION}}' \
+        #       DOCKERHUB_USER='${{secrets.DOCKERHUB_USERNAME}}'
+
+        #     yes | docker rm $(docker container ls --all --filter=ancestor=$(docker images -f "dangling=true" -q) --format "{{.ID}}") --force
+        #     yes | docker image rm $(docker images -f "dangling=true" -q)
+        #     docker-compose up -d
+        #     yes | docker volume prune
