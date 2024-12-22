@@ -77,7 +77,7 @@ spring:
             jakarta:
                 persistence:
                     validation:
-                        mode: none 
+                        mode: none
     sql:
         init:
             mode: ${SPRING_SQL_INIT_MODE}
