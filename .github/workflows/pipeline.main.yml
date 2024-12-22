@@ -1,4 +1,4 @@
-name: word-light_document_builder main
+name: code_notes_backend main
 
 run-name: ${{ github.event.head_commit.message }}
 on: 
@@ -55,8 +55,8 @@ jobs:
         with:
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_frontend:${{env.VERSION}}
+            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:${{env.VERSION}}
           build-args: |
             VERSION=${{env.VERSION}}
             API_NAME=${{env.API_NAME}}
@@ -68,7 +68,7 @@ jobs:
 #     steps:
 #       - uses: appleboy/ssh-action@v1.2.0
 #         with: 
-#           host: word-light.de
+#           host: code-notes.net
 #           username: ${{ secrets.SSH_USER_NAME }}
 #           password: ${{ secrets.SSH_PASSWORD }}
 #           debug: true

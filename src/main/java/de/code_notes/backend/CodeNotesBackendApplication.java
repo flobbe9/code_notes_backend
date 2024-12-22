@@ -38,7 +38,7 @@ public class CodeNotesBackendApplication {
         readEnvFiles(
             "./.env.version", 
             "./.env.secrets.pipeline",
-            !"production".equals(System.getenv("ENV")) ? "./.env.secrets" : ""
+            "./.env.secrets"
         );
 
 		SpringApplication.run(CodeNotesBackendApplication.class, args);

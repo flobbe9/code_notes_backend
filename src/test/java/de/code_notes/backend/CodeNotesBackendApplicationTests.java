@@ -22,8 +22,8 @@ class CodeNotesBackendApplicationTests {
     static void init() {
         CodeNotesBackendApplication.readEnvFiles(
             "./.env.version",
-            "./.env.secrets.pipeline"
-            // !"production".equals(System.getenv("ENV")) ? "./.env.secrets" : ""
+            "./.env.secrets.pipeline",
+            "./.env.secrets"
         );    
     }
 

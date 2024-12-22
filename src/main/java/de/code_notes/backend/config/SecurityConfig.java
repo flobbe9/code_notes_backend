@@ -38,9 +38,6 @@ public class SecurityConfig {
     @Value("${FRONTEND_BASE_URL}")
     private String FRONTEND_BASE_URL;
 
-    @Value("${FRONTEND_BASE_URL_WWW}")
-    private String FRONTEND_BASE_URL_WWW;
-    
     /**
      * Possible values:<p>
      * 
@@ -136,7 +133,7 @@ public class SecurityConfig {
     private CorsConfigurationSource corsConfig() {
 
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(this.FRONTEND_BASE_URL, this.FRONTEND_BASE_URL_WWW));
+        configuration.setAllowedOrigins(List.of(this.FRONTEND_BASE_URL));
         configuration.setAllowedMethods(List.of("GET", "POST", "UPDATE", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
