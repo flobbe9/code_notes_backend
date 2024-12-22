@@ -20,7 +20,11 @@ class CodeNotesBackendApplicationTests {
 
     @BeforeAll
     static void init() {
-        CodeNotesBackendApplication.readEnvFiles("./.env.version", "./.env.secrets");
+        CodeNotesBackendApplication.readEnvFiles(
+            "./.env.version",
+            "./.env.secrets.pipeline"
+            // !"production".equals(System.getenv("ENV")) ? "./.env.secrets" : ""
+        );    
     }
 
 

@@ -4,9 +4,6 @@ WORKDIR /app
 
 ARG VERSION
 ARG GRADLE_BUILD_ARGS=
-# these are missing in .env file but need to be present for application startup. Empty values are fine
-ENV DEFAULT_ADMIN_EMAIL=
-ENV DEFAULT_ADMIN_PASSWORD=
 
 COPY ./src ./src
 COPY ./build.gradle \
