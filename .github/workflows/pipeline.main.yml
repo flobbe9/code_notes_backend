@@ -77,8 +77,7 @@ jobs:
         shell: bash
       - uses: appleboy/ssh-action@v1.2.0
         with: 
-        # TODO replace with domain name
-          host: '85.215.119.220'
+          host: ${{ vars.SSH_HOST }}
           username: ${{ secrets.SSH_USER_NAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           debug: true
