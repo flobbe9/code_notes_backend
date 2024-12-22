@@ -26,7 +26,9 @@ import lombok.extern.log4j.Log4j2;
 
 /**
  * Class catching any java exception thrown in this api. Will log a shortend stacktrace and return a {@link ResponseEntity} object with a
- * {@link CustomExceptionFormat} object.
+ * {@link CustomExceptionFormat} object.<p>
+ * 
+ * Enable TRACE (in .env) to print full stacktrace instead of package only.
  * 
  * @since 0.0.1
  */
@@ -247,11 +249,14 @@ public class CustomExceptionHandler {
                 log.error(INDENT + "at " + trace.getClassName() + "." + trace.getMethodName() + "(" + trace.getFileName() + ":" + trace.getLineNumber() + ")");
         });
         
-        // log cause
+        // cause
         if (throwable.getCause() != null) {
             log.error("Caused by:");
             logPackageStackTrace(throwable.getCause());
         }
+
+        if (log.isTraceEnabled())
+            throwable.printStackTrace();
     }
 
 

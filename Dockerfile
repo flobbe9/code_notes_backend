@@ -1,8 +1,3 @@
-ARG VERSION
-ARG API_NAME
-
-
-### Build ###
 FROM gradle:8.8-jdk17
 
 WORKDIR /app
@@ -20,14 +15,12 @@ RUN sed -i 's/VERSION/'${VERSION}'/' ./build.gradle
 RUN gradle clean build -x test
 
 
-### Run ###
 FROM openjdk:17-alpine
 
 WORKDIR /app
 
 ARG VERSION
 ARG API_NAME
-ENV TZ='Europe/Berlin'
 ENV JAR_FILE_NAME=${API_NAME}-${VERSION}.jar
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}

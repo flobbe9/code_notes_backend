@@ -91,7 +91,7 @@ public class CodeNotesBackendApplication {
                     System.setProperty(entry.getKey(), entry.getValue()));
 
         } catch (IOException e) {
-            log.warn(String.format("Failed to read env file '%s': %s"), fileName, e.getMessage());
+            log.warn(String.format("Failed to read env file '%s': %s", fileName, e.getMessage() == null ? "<no message>" : e.getMessage()));
         }
     }
 }

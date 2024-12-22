@@ -1,4 +1,5 @@
 services:
+  # NOTE: service 'db' is used in pipeline
   db:
     image: mysql:${DB_VERSION}
     container_name: dev_db
@@ -22,19 +23,21 @@ services:
     depends_on: 
       db: 
         condition: service_healthy
+    image: dev_${API_NAME}
     build:
       context: .
       args:
         API_NAME: ${API_NAME}
-        VERSION: 'dev'
-    container_name: dev_api
+        VERSION: 'SNAPSHOT'
+    container_name: backend
     ports: 
-        - ${PORT}:${PORT}
+      - ${PORT}:${PORT}
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:${DB_PORT}/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       MAIL_HOST: maildev
+      TZ: ${TZ}
 
   maildev:
     image: maildev/maildev

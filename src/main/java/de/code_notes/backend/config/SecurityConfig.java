@@ -3,7 +3,6 @@ package de.code_notes.backend.config;
 import static de.code_notes.backend.helpers.Utils.CONFIRM_ACCOUNT_PATH;
 import static de.code_notes.backend.helpers.Utils.LOGIN_PATH;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,7 +170,7 @@ public class SecurityConfig {
      */
     private String[] getRoutesPriorToLogin() {
 
-        List<String> routesPriorLogin = new ArrayList<>(List.of(
+        return new String[] {
             "/logout",
             LOGIN_PATH,
             "/app-user/register",
@@ -180,17 +179,7 @@ public class SecurityConfig {
             "/app-user/check-logged-in",
             "/app-user/send-reset-password-mail",
             "/app-user/reset-password-by-token"
-        ));
-
-        // case: development
-        if ("development".equalsIgnoreCase(this.ENV)) {
-            routesPriorLogin.addAll(List.of(getSwaggerPaths())); 
-            routesPriorLogin.addAll(List.of(
-                "/test"
-            ));
-        }
-
-        return routesPriorLogin.toArray(new String[routesPriorLogin.size()]);
+        };
     }
 
 
