@@ -24,8 +24,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class CodeNotesBackendApplication {
 
-    // @Autowired
-    // private AppUserService appUserService;
+    @Autowired
+    private AppUserService appUserService;
 
 
     /**
@@ -50,7 +50,7 @@ public class CodeNotesBackendApplication {
     public void postStartUp() {
 
         log.info("Registering default admin user");
-        // this.appUserService.registerDefaultAdminUser();
+        this.appUserService.registerDefaultAdminUser();
     }
 
 
