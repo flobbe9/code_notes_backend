@@ -68,7 +68,18 @@ jobs:
     steps:
       - name: Checkout repository 
         uses: actions/checkout@v4.2.2
-      - name: move .env vars to pipeline
+        
+      - name: Copy some files to remote
+        uses: appleboy/scp-action@v0.1.7
+        with:
+            host: ${{ vars.SSH_HOST }}
+            username: ${{ secrets.SSH_USER_NAME }}
+            password: ${{ secrets.SSH_PASSWORD }}
+            source: writeToEnvfile.sh
+            target: ./${{ vars.SSH_TARGET_FOLDER }}
+            debug: true
+
+      - name: Move .env vars to pipeline env
         run: |
           echo $(cat .env | grep '^PORT=.*$') >> $GITHUB_ENV
           echo $(cat .env | grep '^MAIL_HOST=.*$') >> $GITHUB_ENV
@@ -77,14 +88,17 @@ jobs:
           echo $(cat .env | grep '^DB_PORT=.*$') >> $GITHUB_ENV
           echo $(cat .env | grep '^DB_VERSION=.*$') >> $GITHUB_ENV
         shell: bash
-      - uses: appleboy/ssh-action@v1.2.0
+
+      - name: Write env to server .env file, then pull, rerun and clean up
+        uses: appleboy/ssh-action@v1.2.0
         with: 
           host: ${{ vars.SSH_HOST }}
           username: ${{ secrets.SSH_USER_NAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           debug: true
           script: |
-            ./code_notes/writeToEnvFile.sh \
+            chmod 777 ./${{ vars.SSH_TARGET_FOLDER }}/writeToEnvFile.sh 
+            ./${{ vars.SSH_TARGET_FOLDER }}/writeToEnvFile.sh \
               BACKEND_OAUTH2_CLIENT_ID_GOOGLE='${{secrets.OAUTH2_CLIENT_ID_GOOGLE}}' \
               BACKEND_OAUTH2_CLIENT_SECRET_GOOGLE='${{secrets.OAUTH2_CLIENT_SECRET_GOOGLE}}' \
               BACKEND_OAUTH2_CLIENT_ID_GITHUB='${{secrets.OAUTH2_CLIENT_ID_GITHUB}}' \
