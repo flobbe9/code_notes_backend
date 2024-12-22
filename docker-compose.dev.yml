@@ -1,4 +1,5 @@
 services:
+  # NOTE: service 'db' is used in pipeline
   db:
     image: mysql:${DB_VERSION}
     container_name: dev_db
@@ -6,22 +7,49 @@ services:
         - ${DB_PORT}:${DB_PORT}
     environment:
       MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
-      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      TZ: Europe/Berlin
-    command: --mysql-native-password=ON # see mysql_8.4._create_user.md for explanation
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: ${TZ}
+    # command: --mysql-native-password=ON # see mysql_8.4._create_user.md for explanation
+    healthcheck:
+      test: mysqladmin ping -h db
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./volumes/db/:/var/lib/mysql/
     
-  # api:
-  #   depends_on: 
-  #     - db
-  #   build: .
-  #   container_name: _dev_api
-  #   ports: 
-  #       - ${PORT}:${PORT}
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:mysql://db:${DB_PORT}/${DB_NAME}
-  #     SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-  #     SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-  #     SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-  #     TZ: Europe/Berlin
+  backend:
+    depends_on: 
+      db: 
+        condition: service_healthy
+    image: dev_${API_NAME}
+    build:
+      context: .
+      args:
+        API_NAME: ${API_NAME}
+        VERSION: 'SNAPSHOT'
+    container_name: backend
+    ports: 
+      - ${PORT}:${PORT}
+    environment:
+      MAIL_HOST: maildev
+      DB_HOST: db
+      TZ: ${TZ}
+    healthcheck:
+      test: wget --no-verbose --no-check-certificate --tries=1 --spider ${PROTOCOL}://backend:${PORT}/logout || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  maildev:
+    image: maildev/maildev
+    container_name: dev_maildev
+    ports: 
+        - ${MAIL_PORT}:${MAIL_PORT}
+        - 1080:1080
+    environment:
+      TZ: ${TZ}

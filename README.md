@@ -1,5 +1,9 @@
-# Using Oauth2 locally
-- create an .env.local file at the project root (same level as /src)
+# Run
+- `docker-compose -f 'docker-compose.dev.yml up -d --build` 
+
+
+## Using Oauth2 locally
+- create an .env.secrets file at the project root (same level as /src)
 - use these keys:
 ```
 OAUTH2_CLIENT_ID_GOOGLE=
@@ -17,4 +21,4 @@ OAUTH2_ISSUER_URI_AZURE=
 ```
 
 ### Note
-- values from .env.local wont override .env values
+- values from .env.secrets wont override .env values

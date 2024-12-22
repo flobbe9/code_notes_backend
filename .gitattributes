@@ -1,1 +1,1 @@
-.app_env merge=ours
+.env merge=ours
