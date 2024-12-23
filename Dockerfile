@@ -9,15 +9,14 @@ COPY ./src ./src
 COPY ./build.gradle \
      ./settings.gradle \
      ./.env \
-     ./.env.secrets.pipeline \
+    #  ./.env.secrets.pipeline \
      ./
 
 # -i: case-sensitive, s: first occurrence
 RUN sed -i 's/VERSION/'${VERSION}'/' ./build.gradle
 
 # for some reason tests don't load jdbc driver when run in docker container
-RUN gradle clean build ${GRADLE_BUILD_ARGS} -x test
-
+RUN gradle clean build ${GRADLE_BUILD_ARGS}
 
 FROM openjdk:17-alpine
 

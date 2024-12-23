@@ -22,7 +22,7 @@ class CodeNotesBackendApplicationTests {
     static void init() {
         CodeNotesBackendApplication.readEnvFiles(
             "./.env.version",
-            "./.env.secrets.pipeline",
+            // "./.env.secrets.pipeline",
             "./.env.secrets"
         );    
     }
