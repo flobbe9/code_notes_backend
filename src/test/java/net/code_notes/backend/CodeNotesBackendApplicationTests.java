@@ -21,11 +21,11 @@ class CodeNotesBackendApplicationTests {
 
     @BeforeAll
     static void init() {
-        // CodeNotesBackendApplication.readEnvFiles(
-        //     "./.env.version",
-        //     "./.env.secrets.pipeline",
-        //     "./.env.secrets"
-        // );    
+        CodeNotesBackendApplication.readEnvFiles(
+            "./.env.version",
+            "./.env.secrets.pipeline",
+            "./.env.secrets"
+        );    
     }
 
 

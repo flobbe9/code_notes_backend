@@ -61,7 +61,6 @@ spring:
                     azure:
                         issuer-uri: ${OAUTH2_ISSUER_URI_AZURE}
                         
-                        
     ### DB
     datasource:
         url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
