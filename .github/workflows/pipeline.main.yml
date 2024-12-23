@@ -115,7 +115,6 @@ jobs:
               DB_PORT='${{env.DB_PORT}}' \
               DB_VERSION='${{env.DB_VERSION}}' \
               DOCKERHUB_USER='${{secrets.DOCKERHUB_USERNAME}}'
-              
             yes | docker rm $(docker container ls --all --filter=ancestor=$(docker images -f "dangling=true" -q) --format "{{.ID}}") --force
             yes | docker image rm $(docker images -f "dangling=true" -q)
             docker-compose up -d
