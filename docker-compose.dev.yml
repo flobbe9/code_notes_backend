@@ -1,5 +1,5 @@
 services:
-  # NOTE: service 'db' is used in pipeline
+  # NOTE: used in pipeline
   db:
     image: mysql:${DB_VERSION}
     container_name: dev_db
@@ -11,15 +11,14 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       TZ: ${TZ}
-    # command: --mysql-native-password=ON # see mysql_8.4._create_user.md for explanation
     healthcheck:
       test: mysqladmin ping -h db
       start_period: 10s
       interval: 5s
       timeout: 5s
       retries: 10
-    volumes:
-      - ./volumes/db/:/var/lib/mysql/
+    # volumes:
+    #   - ./volumes/db/:/var/lib/mysql/
     
   backend:
     depends_on: 
