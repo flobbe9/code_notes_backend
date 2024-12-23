@@ -1,3 +1,5 @@
+# NOTE: exclude characters: &\;'
+
 # place the .env and this .sh file inside same directory
 ENV_FILE_NAME=$(dirname "$0")/.env
 
