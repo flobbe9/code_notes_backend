@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import lombok.extern.log4j.Log4j2;
-import net.code_notes.backend.CodeNotesBackendApplication;
 
 
 @SpringBootTest
@@ -23,7 +22,7 @@ class CodeNotesBackendApplicationTests {
     static void init() {
         CodeNotesBackendApplication.readEnvFiles(
             "./.env.version",
-            "./.env.secrets.pipeline",
+            // "./.env.secrets.pipeline",
             "./.env.secrets"
         );    
     }
