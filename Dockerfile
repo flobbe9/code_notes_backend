@@ -32,6 +32,7 @@ ENV DB_HOST=${DB_HOST}
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
 COPY ./.env \
      ./.env.version \
+     ./.env.secret[s] \
      ./
 
 ENTRYPOINT java -jar ${JAR_FILE_NAME}

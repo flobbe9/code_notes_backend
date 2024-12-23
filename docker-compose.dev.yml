@@ -1,5 +1,5 @@
 services:
-  # NOTE: used in pipeline
+  # NOTE: used in pipeline, volumes don't work in pipeline
   db:
     image: mysql:${DB_VERSION}
     container_name: dev_db
@@ -17,8 +17,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # volumes:
-    #   - ./volumes/db/:/var/lib/mysql/
     
   backend:
     depends_on: 
@@ -34,15 +32,6 @@ services:
     ports: 
       - ${PORT}:${PORT}
     environment:
-      OAUTH2_CLIENT_ID_GOOGLE: 'not_empty'
-      OAUTH2_CLIENT_SECRET_GOOGLE: 'not_empty'
-      OAUTH2_CLIENT_ID_GITHUB: 'not_empty'
-      OAUTH2_CLIENT_SECRET_GITHUB: 'not_empty'
-      OAUTH2_CLIENT_ID_AZURE: 'not_empty'
-      OAUTH2_CLIENT_SECRET_AZURE: 'not_empty'
-      SSL_KEY_STORE_PASSWORD: 
-      DEFAULT_ADMIN_EMAIL: user@user.com
-      DEFAULT_ADMIN_PASSWORD: Abc123,.
       MAIL_HOST: maildev
       DB_HOST: db
       TZ: ${TZ}
