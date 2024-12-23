@@ -97,7 +97,7 @@ spring:
 
 logging:
     level:
-        de:
+        net:
             code_notes:
                 backend: ${LOG_LEVEL}
     file:

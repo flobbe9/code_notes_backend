@@ -15,8 +15,9 @@ COPY ./build.gradle \
 # -i: case-sensitive, s: first occurrence
 RUN sed -i 's/VERSION/'${VERSION}'/' ./build.gradle
 
-# for some reason tests don't load jdbc driver when run in docker container
+# for some reason tests don't work in docker container
 RUN gradle clean build ${GRADLE_BUILD_ARGS} -x test
+
 
 FROM openjdk:17-alpine
 
@@ -30,7 +31,7 @@ ENV DB_HOST=${DB_HOST}
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
 COPY ./.env \
-     ./.env.* \
+     ./.env.version \
      ./
 
 ENTRYPOINT java -jar ${JAR_FILE_NAME}
