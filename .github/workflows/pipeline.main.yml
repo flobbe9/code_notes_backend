@@ -107,3 +107,7 @@ jobs:
               BACKEND_PORT='${{env.PORT}}' \
               BACKEND_MAIL_USER='${{secrets.MAIL_USER}}' \
 
+              BACKEND_MAIL_PASSWORD='${{secrets.MAIL_PASSWORD}}' \
+              BACKEND_DEFAULT_ADMIN_EMAIL='${{ secrets.DEFAULT_ADMIN_EMAIL }}' \
+              BACKEND_DEFAULT_ADMIN_PASSWORD='${{ secrets.DEFAULT_ADMIN_PASSWORD }}' \
+              DB_USER='${{secrets.DB_USER}}'
