@@ -9,7 +9,7 @@ COPY ./src ./src
 COPY ./build.gradle \
      ./settings.gradle \
      ./.env \
-     ./.env.secrets.pipeline \
+     ./.env.* \
      ./
 
 # -i: case-sensitive, s: first occurrence
@@ -31,7 +31,7 @@ ENV DB_HOST=${DB_HOST}
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
 COPY ./.env \
-     ./.env.* \
+     ./.env.version \
      ./
 
 ENTRYPOINT java -jar ${JAR_FILE_NAME}
