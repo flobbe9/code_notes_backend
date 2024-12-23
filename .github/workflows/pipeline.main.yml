@@ -118,5 +118,5 @@ jobs:
 
             yes | docker rm $(docker container ls --all --filter=ancestor=$(docker images -f "dangling=true" -q) --format "{{.ID}}") --force
             yes | docker image rm $(docker images -f "dangling=true" -q)
-            docker-compose up -d
+            docker-compose -f './${{ vars.SSH_TARGET_FOLDER }}/docker-compose.yml' up -d
             yes | docker volume prune
