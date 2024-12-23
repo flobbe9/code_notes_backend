@@ -20,6 +20,6 @@ jobs:
           java-version: '17'
       - name: Start db for build context
         run: docker compose -f 'docker-compose.dev.yml' up db -d   
-      - name: Build and test with informative logs (-i)
-        # run: gradle clean build -i
-        run: docker compose -f 'docker-compose.dev.yml' build backend --build-arg GRADLE_BUILD_ARGS='-i'
+      - name: Build and test with INFO logs (-i)
+        run: gradle clean build -i
+        # run: docker compose -f 'docker-compose.dev.yml' build backend --build-arg GRADLE_BUILD_ARGS='-i'
