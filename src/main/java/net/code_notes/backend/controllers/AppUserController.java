@@ -83,7 +83,7 @@ public class AppUserController extends DeletedEntityRecordController {
 
     @PostMapping("/register")
     @Operation(
-        description = "Saves new app user and sends a confirmation mail (asynchronously). AuthRequirements: NONE",
+        description = "Saves new app user and sends a confirmation mail (asynchronously).",
         responses = {
             @ApiResponse(responseCode = "200", description = "New user saved, mail sending process has been started"),
             @ApiResponse(responseCode = "400", description = "Invalid params"),
@@ -191,7 +191,7 @@ public class AppUserController extends DeletedEntityRecordController {
 
     @GetMapping("/check-logged-in")
     @Operation(
-        description = "Indicates whether the current session is still valid or not. AuthRequirements: NONE",
+        description = "Indicates whether the current session is still valid or not.",
         responses = {
             @ApiResponse(responseCode = "200", description = "In any case. Returns true if is logged in, else false"),
         }
