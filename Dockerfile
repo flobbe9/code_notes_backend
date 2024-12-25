@@ -30,6 +30,7 @@ ARG DB_HOST
 ENV DB_HOST=${DB_HOST}
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
+# NOTE: don't include .env.secrets.pipeline here since it would take precedence over docker-compose environment
 COPY ./.env \
      ./.env.version \
      ./.env.secret[s] \

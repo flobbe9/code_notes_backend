@@ -22,6 +22,7 @@ import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.helpers.Utils;
 
 
@@ -29,6 +30,7 @@ import net.code_notes.backend.helpers.Utils;
  * @since 0.0.1
  */
 @Service
+@Log4j2
 public class MailService {
 
     @Autowired
@@ -39,6 +41,19 @@ public class MailService {
 
     @Value("${MAIL_STARTTLS_ENABLE}")
     private String MAIL_STARTTLS_ENABLE;
+
+    @Value("${MAIL_USER}")
+    private String MAIL_USER;
+
+    @Value("${MAIL_PASSWORD}")
+    private String MAIL_PASSWORD;
+
+    @Value("${MAIL_PORT}")
+    private String MAIL_PORT;
+
+    @Value("${MAIL_HOST}")
+    private String MAIL_HOST;
+
 
     @Value("${ENV}")
     private String ENV;
@@ -255,8 +270,7 @@ public class MailService {
         props.put("mail.smtp.auth", this.SMTP_AUTH_ENABLE);
         props.put("mail.smtp.starttls.enable", this.MAIL_STARTTLS_ENABLE);
 
-        // debug mode
-        // if (ENV.equals("development"))
-        //     props.put("mail.debug", "true");
+        if (log.isDebugEnabled())
+            props.put("mail.debug", "true");
     }
 }

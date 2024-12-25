@@ -1,5 +1,6 @@
 package net.code_notes.backend.abstracts;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Meant for entities that contain sensitive data and therefore need a db record when beeing deleted.
@@ -13,6 +14,7 @@ public interface NeedsDeletionRecord {
      * 
      * @return a unique identifier of the entity (don't use db id)
      */
+    @JsonIgnore
     String getUniqueId();
 
 
@@ -21,6 +23,7 @@ public interface NeedsDeletionRecord {
      * 
      * @return the full package name plus the class name of the entity
      */
+    @JsonIgnore
     default String getDeletedEntityClassName() {
 
         return this.getClass().getName();
