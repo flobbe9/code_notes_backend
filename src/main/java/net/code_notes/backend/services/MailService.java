@@ -42,19 +42,6 @@ public class MailService {
     @Value("${MAIL_STARTTLS_ENABLE}")
     private String MAIL_STARTTLS_ENABLE;
 
-    @Value("${MAIL_USER}")
-    private String MAIL_USER;
-
-    @Value("${MAIL_PASSWORD}")
-    private String MAIL_PASSWORD;
-
-    @Value("${MAIL_PORT}")
-    private String MAIL_PORT;
-
-    @Value("${MAIL_HOST}")
-    private String MAIL_HOST;
-
-
     @Value("${ENV}")
     private String ENV;
 
