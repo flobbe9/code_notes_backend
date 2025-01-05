@@ -59,8 +59,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import net.code_notes.backend.controllers.CustomExceptionFormat;
-import net.code_notes.backend.controllers.CustomExceptionHandler;
 
 
 /**

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import net.code_notes.backend.controllers.CustomExceptionFormat;
+import net.code_notes.backend.helpers.CustomExceptionFormat;
 import net.code_notes.backend.helpers.Utils;
 
 

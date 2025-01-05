@@ -30,6 +30,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import net.code_notes.backend.entities.AppUser;
+import net.code_notes.backend.helpers.CustomExceptionHandler;
 import net.code_notes.backend.helpers.Utils;
 import net.code_notes.backend.services.AppUserService;
 import net.code_notes.backend.services.AsyncService;

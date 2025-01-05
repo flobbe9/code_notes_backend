@@ -86,13 +86,13 @@ public class SecurityConfig {
         // case: qa | production
         } else {
             http.csrf(csrf -> csrf
-                .ignoringRequestMatchers(getRoutesPriorToLogin())
+                .ignoringRequestMatchers(getPermittedRoutes())
                 // load csrf token on every request
                 .csrfTokenRequestHandler(customCsrfTokenRequestAttributeHandler()));
 
             // endpoints
             http.authorizeHttpRequests(request -> request
-                .requestMatchers(getRoutesPriorToLogin())
+                .requestMatchers(getPermittedRoutes())
                     .permitAll()
                 .requestMatchers(getSwaggerPaths())
                     .hasRole("ADMIN")
@@ -165,7 +165,7 @@ public class SecurityConfig {
     /**
      * @return array of paths that a user should be able to access without having a valid session, e.g. "/api/userService/register"
      */
-    private String[] getRoutesPriorToLogin() {
+    private String[] getPermittedRoutes() {
 
         return new String[] {
             "/logout",
@@ -175,7 +175,8 @@ public class SecurityConfig {
             "/app-user/resend-confirmation-mail",
             "/app-user/check-logged-in",
             "/app-user/send-reset-password-mail",
-            "/app-user/reset-password-by-token"
+            "/app-user/reset-password-by-token",
+            "/version"
         };
     }
 

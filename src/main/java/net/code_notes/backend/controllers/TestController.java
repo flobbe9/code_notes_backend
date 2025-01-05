@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.annotation.SessionScope;
 
 import net.code_notes.backend.entities.AppUser;
 import net.code_notes.backend.entities.Note;
@@ -15,6 +17,7 @@ import net.code_notes.backend.services.AppUserService;
 
 @RestController
 @RequestMapping("/test")
+@SessionScope
 public class TestController {
 
     @Autowired
@@ -23,27 +26,19 @@ public class TestController {
     @Autowired
     private AppUserService appUserService;
 
+    private String cached;
+
     
-    @PostMapping
-    public Note test(@RequestBody Note note) {
+    @GetMapping("/set")
+    public void set(@RequestParam String cached) {
 
-        note.setAppUser(this.appUserService.getCurrent());
-
-        // note = this.noteRepository.save(note);
-
-        // if (note.getNoteInputs() != null) 
-        //     for (NoteInput noteInput : note.getNoteInputs()) 
-        //         noteInput.setNote(note);
-        
-        note = this.noteRepository.save(note);
-
-        return note;
+        this.cached = cached;
     }
 
         
-    @GetMapping
-    public AppUser test() {
+    @GetMapping("/get")
+    public void get() {
 
-        return new AppUser();
+        System.out.println(this.cached);
     }
 }

@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import lombok.extern.log4j.Log4j2;
-import net.code_notes.backend.controllers.CustomExceptionHandler;
+import net.code_notes.backend.helpers.CustomExceptionHandler;
 
 
 /**
