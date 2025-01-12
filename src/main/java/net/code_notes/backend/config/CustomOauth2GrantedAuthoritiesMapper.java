@@ -18,8 +18,9 @@ import net.code_notes.backend.services.AppUserService;
 
 
 /**
- * TODO
- * @since latest
+ * Maps {@link AppUserRole}s as spring authorities to oauth2 users instead of using the default ones.
+ * 
+ * @since 0.0.2
  */
 @Component
 @Log4j2
@@ -40,7 +41,7 @@ public class CustomOauth2GrantedAuthoritiesMapper implements GrantedAuthoritiesM
                 AppUser appUser = AppUser.getInstanceByDefaultOauth2User(((OAuth2UserAuthority) authority).getAttributes());
                 appUser = this.appUserService.loadByEmail((String) appUser.getEmail());
 
-                // case: was not registered yet
+                // case: was not registered
                 if (appUser == null)
                     mappedAuthorities.add(defaultRole);
 
@@ -56,8 +57,6 @@ public class CustomOauth2GrantedAuthoritiesMapper implements GrantedAuthoritiesM
             // only iterate once
             break;
         }
-
-        log.info(mappedAuthorities);
 
         return mappedAuthorities;
     }

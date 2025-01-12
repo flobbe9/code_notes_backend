@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 /**
- * @since latest
+ * @since 0.0.2
  */
 @RestController
 public class RootController {
