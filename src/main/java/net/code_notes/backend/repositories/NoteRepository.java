@@ -18,5 +18,5 @@ public interface NoteRepository extends AbstractRepository<Note> {
 
     List<Note> findAllByAppUserOauth2IdOrderByCreatedDesc(String oauth2Id);
 
-    List<Note> findAllByAppUserEmailAndAppUserOauth2IdIsNullOrderByCreatedDesc(String email);
+    List<Note> findAllByAppUserEmailOrderByCreatedDesc(String email);
 }
