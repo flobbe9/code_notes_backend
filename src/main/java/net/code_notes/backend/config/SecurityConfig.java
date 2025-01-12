@@ -20,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
+import net.code_notes.backend.abstracts.AppUserRole;
 
 
 /**
@@ -56,6 +57,8 @@ public class SecurityConfig {
     private CustomLoginFailureHandler customLoginFailureHandler;
     @Autowired
     private CustomUnAuthenticatedHandler customUnAuthenticatedHandler;
+    @Autowired
+    private CustomOauth2GrantedAuthoritiesMapper customOauth2GrantedAuthoritiesMapper;
 
 
     @PostConstruct
@@ -95,7 +98,7 @@ public class SecurityConfig {
                 .requestMatchers(getPermittedRoutes())
                     .permitAll()
                 .requestMatchers(getSwaggerPaths())
-                    .hasRole("ADMIN")
+                    .hasRole(AppUserRole.ADMIN.name())
                 .anyRequest()
                     .authenticated());
         }
@@ -105,6 +108,8 @@ public class SecurityConfig {
             .failureHandler(this.customLoginFailureHandler));
 
         http.oauth2Login(oauth2login -> oauth2login
+            .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                .userAuthoritiesMapper(this.customOauth2GrantedAuthoritiesMapper))
             .successHandler(this.customLoginSuccessHandler)
             .failureHandler(this.customLoginFailureHandler));
 

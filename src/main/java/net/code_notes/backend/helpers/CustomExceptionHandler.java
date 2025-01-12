@@ -152,7 +152,7 @@ public class CustomExceptionHandler {
 
         
     /**
-     * Set status to 403 with a simple message. Don't log error.
+     * Set status to 403 with a simple message.
      * 
      * @param exception
      * @return
