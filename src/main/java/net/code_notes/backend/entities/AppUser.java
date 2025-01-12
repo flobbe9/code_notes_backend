@@ -93,21 +93,36 @@ public class AppUser extends AbstractEntity implements UserDetails, NeedsDeletio
     /**
      * Will give appuser a default role of {@code USER} since there's no specific role concept for oauth2 providers.
      * 
-     * @param oauth2User retrieved from session
-     * @return an app user instance containing fields of given oauth user or {@code null} if {@code oauth2User} is {@code null}
+     * @param oauth2UserAttributes retrieved from session
+     * @return an app user instance containing fields of given attributes or {@code null} if {@code oauth2UserAttributes} is {@code null}
      */
-    public static AppUser getInstanceByDefaultOauth2User(@Nullable DefaultOAuth2User oauth2User) {
+    public static AppUser getInstanceByDefaultOauth2User(@Nullable Map<String, Object> oauth2UserAttributes) {
 
-        if (oauth2User == null)
+        if (oauth2UserAttributes == null)
             return null;
         
         AppUser appUser = new AppUser();
-        appUser.setEmail(oauth2User.getAttribute("email"));
+        appUser.setEmail((String) oauth2UserAttributes.get("email"));
         appUser.setRole(AppUserRole.USER);
-        appUser.setOauth2Id(oauth2User.getAttribute("sub"));
+        appUser.setOauth2Id((String) oauth2UserAttributes.get("sub"));
         appUser.enable();
 
         return appUser;
+    }
+
+
+    /**
+     * Overload.
+     * 
+     * @param oauth2User retrieved from session
+     * @return
+     */
+    public static AppUser getInstanceByDefaultOauth2User(@Nullable DefaultOAuth2User oAuth2User) {
+
+        if (oAuth2User == null)
+            return null;
+
+        return getInstanceByDefaultOauth2User(oAuth2User.getAttributes());
     }
 
 

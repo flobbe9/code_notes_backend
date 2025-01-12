@@ -1,4 +1,4 @@
-package net.code_notes.backend.controllers;
+package net.code_notes.backend.helpers;
 
 import java.time.LocalDateTime;
 
@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import net.code_notes.backend.helpers.Utils;
 
 
 /**

@@ -20,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
+import net.code_notes.backend.abstracts.AppUserRole;
 
 
 /**
@@ -56,6 +57,8 @@ public class SecurityConfig {
     private CustomLoginFailureHandler customLoginFailureHandler;
     @Autowired
     private CustomUnAuthenticatedHandler customUnAuthenticatedHandler;
+    @Autowired
+    private CustomOauth2GrantedAuthoritiesMapper customOauth2GrantedAuthoritiesMapper;
 
 
     @PostConstruct
@@ -86,16 +89,16 @@ public class SecurityConfig {
         // case: qa | production
         } else {
             http.csrf(csrf -> csrf
-                .ignoringRequestMatchers(getRoutesPriorToLogin())
+                .ignoringRequestMatchers(getPermittedRoutes())
                 // load csrf token on every request
                 .csrfTokenRequestHandler(customCsrfTokenRequestAttributeHandler()));
 
             // endpoints
             http.authorizeHttpRequests(request -> request
-                .requestMatchers(getRoutesPriorToLogin())
+                .requestMatchers(getPermittedRoutes())
                     .permitAll()
                 .requestMatchers(getSwaggerPaths())
-                    .hasRole("ADMIN")
+                    .hasRole(AppUserRole.ADMIN.name())
                 .anyRequest()
                     .authenticated());
         }
@@ -105,6 +108,8 @@ public class SecurityConfig {
             .failureHandler(this.customLoginFailureHandler));
 
         http.oauth2Login(oauth2login -> oauth2login
+            .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                .userAuthoritiesMapper(this.customOauth2GrantedAuthoritiesMapper))
             .successHandler(this.customLoginSuccessHandler)
             .failureHandler(this.customLoginFailureHandler));
 
@@ -165,7 +170,7 @@ public class SecurityConfig {
     /**
      * @return array of paths that a user should be able to access without having a valid session, e.g. "/api/userService/register"
      */
-    private String[] getRoutesPriorToLogin() {
+    private String[] getPermittedRoutes() {
 
         return new String[] {
             "/logout",
@@ -175,7 +180,8 @@ public class SecurityConfig {
             "/app-user/resend-confirmation-mail",
             "/app-user/check-logged-in",
             "/app-user/send-reset-password-mail",
-            "/app-user/reset-password-by-token"
+            "/app-user/reset-password-by-token",
+            "/version"
         };
     }
 

@@ -25,11 +25,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import net.code_notes.backend.entities.AppUser;
+import net.code_notes.backend.helpers.CustomExceptionHandler;
 import net.code_notes.backend.helpers.Utils;
 import net.code_notes.backend.services.AppUserService;
 import net.code_notes.backend.services.AsyncService;
@@ -213,7 +213,7 @@ public class AppUserController extends DeletedEntityRecordController {
             @ApiResponse(responseCode = "501", description = "Current principal is neither normally logged in nor an oauth2 user"),
         }
     )
-    public Mono<AppUser> getCurrent(HttpServletRequest request) {
+    public Mono<AppUser> getCurrent() {
 
         return Mono.just(this.appUserService.loadCurrentFromDb());
     }

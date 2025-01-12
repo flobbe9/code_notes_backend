@@ -1,4 +1,4 @@
-package net.code_notes.backend.controllers;
+package net.code_notes.backend.helpers;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -21,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.CodeNotesBackendApplication;
-import net.code_notes.backend.helpers.Utils;
 
 
 /**
@@ -153,7 +152,7 @@ public class CustomExceptionHandler {
 
         
     /**
-     * Set status to 403 with a simple message. Don't log error.
+     * Set status to 403 with a simple message.
      * 
      * @param exception
      * @return
