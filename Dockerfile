@@ -19,7 +19,7 @@ RUN sed -i 's/VERSION/'${VERSION}'/' ./build.gradle
 RUN gradle clean build ${GRADLE_BUILD_ARGS} -x test
 
 
-FROM openjdk:17-alpine
+FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
 
