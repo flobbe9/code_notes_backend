@@ -1,7 +1,6 @@
 plugins {
 	id 'java'
-    // NOTE: updating to 3.4.1 causes swagger to fail 
-	id 'org.springframework.boot' version '3.3.2'
+	id 'org.springframework.boot' version '3.4.2'
 	id 'io.spring.dependency-management' version '1.1.6'
 }
 
@@ -33,7 +32,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
+    implementation 'io.swagger.core.v3:swagger-core:2.2.28'
 
 	compileOnly 'org.projectlombok:lombok'
     // remove warning caused by @Nullable
