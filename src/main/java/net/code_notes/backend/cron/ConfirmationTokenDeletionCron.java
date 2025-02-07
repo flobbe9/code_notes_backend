@@ -21,7 +21,7 @@ public class ConfirmationTokenDeletionCron {
     private ConfirmationTokenService confirmationTokenService;
 
 
-    // @Scheduled(cron = "0 0 2 * * ?") // at 02:00 every day
+    @Scheduled(cron = "0 0 2 * * ?") // at 02:00 every day
     // @Scheduled(cron = "*/5 * * * * ?") // every 5 seconds
     public void deleteOlderThan() {
 
