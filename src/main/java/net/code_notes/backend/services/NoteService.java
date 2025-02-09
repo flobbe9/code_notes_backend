@@ -5,6 +5,7 @@ import static net.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankO
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -39,7 +40,9 @@ public class NoteService extends AbstractService<Note> {
     /**
      * @return all notes of the app user currently logged in
      * @throws ResponseStatusException
+     * @deprecated use {@link #getByCurrentAppUserOrderByCreatedDescPageable} instead
      */
+    @Deprecated(since = "1.0.0", forRemoval = true)
     public List<Note> getAllByCurrentAppUser() throws ResponseStatusException {
 
         AppUser appUser = this.appUserService.getCurrent();
@@ -48,6 +51,34 @@ public class NoteService extends AbstractService<Note> {
             return this.noteRepository.findAllByAppUserOauth2IdOrderByCreatedDesc(appUser.getOauth2Id());
 
         return this.noteRepository.findAllByAppUserEmailOrderByCreatedDesc(appUser.getEmail());
+    }
+
+
+    public long countByCurrentAppUser() {
+
+        AppUser currentAppUser = this.appUserService.getCurrent();
+
+        if (this.oauth2Service.isOauth2Session())
+            return this.noteRepository.countByAppUserOauth2Id(currentAppUser.getOauth2Id());
+
+        return this.noteRepository.countByAppUserEmail(currentAppUser.getEmail());
+    }
+
+
+    /**
+     * @param pageNumber 0-based
+     * @param pageSize the number of notes per page. Min 1
+     * @return a page of notes related to the current app user
+     * @throws ResponseStatusException
+     */
+    public List<Note> getByCurrentAppUserOrderByCreatedDescPageable(int pageNumber, int pageSize) throws ResponseStatusException {
+        
+        AppUser appUser = this.appUserService.getCurrent();
+
+        if (this.oauth2Service.isOauth2Session())
+            return this.noteRepository.findByAppUserOauth2IdOrderByCreatedDesc(appUser.getOauth2Id(), PageRequest.of(pageNumber, pageSize));
+
+        return this.noteRepository.findByAppUserEmailOrderByCreatedDesc(appUser.getEmail(), PageRequest.of(pageNumber, pageSize));
     }
 
 

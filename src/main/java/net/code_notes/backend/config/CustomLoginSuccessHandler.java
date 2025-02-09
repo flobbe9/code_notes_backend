@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import net.code_notes.backend.helpers.CustomExceptionHandler;
 import net.code_notes.backend.helpers.Utils;
 import net.code_notes.backend.services.AppUserService;
 import net.code_notes.backend.services.Oauth2Service;
@@ -70,6 +71,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
                 Utils.writeToResponse(response, csrfTokenValue);
 
         } catch (Exception e) {
+            CustomExceptionHandler.logPackageStackTrace(e);
             writeOrRedirectResponse(response, isOauth2, this.FRONTEND_BASE_URL + Utils.LOGIN_PATH, e);
             this.appUserService.logout();
         }
@@ -95,6 +97,17 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
 
+    /**
+     * Write response to outputstream or (if is oauth2) redirect to frontend appending the status code.
+     * 
+     * @param response
+     * @param isOauth2
+     * @param redirectPath
+     * @param exception
+     * @throws JsonProcessingException
+     * @throws IllegalArgumentException
+     * @throws IOException
+     */
     private void writeOrRedirectResponse(HttpServletResponse response, boolean isOauth2, String redirectPath, Exception exception) throws JsonProcessingException, IllegalArgumentException, IOException {
 
         assertArgsNotNullAndNotBlank(response, 1, redirectPath, exception);

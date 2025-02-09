@@ -15,12 +15,16 @@ import org.springframework.web.server.ResponseStatusException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import net.code_notes.backend.entities.Note;
 import net.code_notes.backend.services.NoteService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
+/**
+ * @since 0.0.1
+ */
 @RestController
 @RequestMapping("/note")
 public class NoteController {
@@ -31,15 +35,43 @@ public class NoteController {
     
     @GetMapping("/get-all-by-appUser")
     @Operation(
-        description = "Gets all notes related to app user currently logged in. Uses default order 'created' - 'descending'",
+        description = "Gets all notes related to app user currently logged in. Uses default order 'created' - 'descending'. AuthRequirements: LOGGED_IN",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty). AuthRequirements: LOGGED_IN"),
+            @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty)."),
             @ApiResponse(responseCode = "401", description = "Not logged in")
         }
     )
     public Flux<Note> getAllByAppUser() {
 
         return Flux.fromIterable(this.noteService.getAllByCurrentAppUser());
+    }
+    
+    
+    @GetMapping("/get-by-app_user-pageable")
+    @Operation(
+        description = "Gets a page of notes related to app user currently logged in. Uses default order 'created' - 'descending'. AuthRequirements: LOGGED_IN",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty)."),
+            @ApiResponse(responseCode = "401", description = "Not logged in")
+        }
+    )
+    public Flux<Note> getByAppUserPageable(@RequestParam @Min(0) int pageNumber, @RequestParam @Min(1) int pageSize) {
+
+        return Flux.fromIterable(this.noteService.getByCurrentAppUserOrderByCreatedDescPageable(pageNumber, pageSize));
+    }
+
+
+    @GetMapping("/count-by-app_user")
+    @Operation(
+        description = "Returns the total number of notes of the current app user. AuthRequirements: LOGGED_IN",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Got the count"),
+            @ApiResponse(responseCode = "401", description = "Not logged in")
+        }
+    )
+    public Mono<Long> countAll() {
+
+        return Mono.just(this.noteService.countByCurrentAppUser());
     }
 
 
