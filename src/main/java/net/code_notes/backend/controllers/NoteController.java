@@ -57,6 +57,8 @@ public class NoteController {
     )
     public Flux<Note> getByAppUserPageable(@RequestParam @Min(0) int pageNumber, @RequestParam @Min(1) int pageSize) {
 
+        // read them params
+
         return Flux.fromIterable(this.noteService.getByCurrentAppUserOrderByCreatedDescPageable(pageNumber, pageSize));
     }
 

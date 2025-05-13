@@ -30,7 +30,6 @@ services:
       args:
         API_NAME: ${API_NAME}
         VERSION: 'SNAPSHOT'
-        RUNTIME_ARGS: -Xmx512m
     container_name: backend
     ports: 
       - ${PORT}:${PORT}

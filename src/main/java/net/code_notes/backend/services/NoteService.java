@@ -71,12 +71,22 @@ public class NoteService extends AbstractService<Note> {
      * @return a page of notes related to the current app user
      * @throws ResponseStatusException
      */
+    // TODO
+        // shorten name
+        // add params
     public List<Note> getByCurrentAppUserOrderByCreatedDescPageable(int pageNumber, int pageSize) throws ResponseStatusException {
         
         AppUser appUser = this.appUserService.getCurrent();
 
         if (this.oauth2Service.isOauth2Session())
             return this.noteRepository.findByAppUserOauth2IdOrderByCreatedDesc(appUser.getOauth2Id(), PageRequest.of(pageNumber, pageSize));
+
+        // search and consider
+            // oauth2
+            // pagenum
+            // pagesize
+            // searchphrase
+            // searchtags
 
         return this.noteRepository.findByAppUserEmailOrderByCreatedDesc(appUser.getEmail(), PageRequest.of(pageNumber, pageSize));
     }
