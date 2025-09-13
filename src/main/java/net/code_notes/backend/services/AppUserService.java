@@ -68,9 +68,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
     @Autowired
     private AsyncService asyncService;
 
-    /** The user info object containing the primary email of a github user. Will be set in {@link #getCurrentGithub()} */
-    private Map<String, Object> currentPrimaryGithubEmailUserInfo;
-
 
     /**
      * @param principal the current app user
@@ -164,13 +161,13 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         DefaultOAuth2User oauthUser = ((DefaultOAuth2User) principal);
                 
         // case: github email has been cached
-        if (this.currentPrimaryGithubEmailUserInfo != null) 
-            return AppUser.getInstanceByGithubUser(oauthUser, this.currentPrimaryGithubEmailUserInfo);
+        if (this.oauth2Service.getCurrentPrimaryGithubEmailUserInfo() != null)
+            return AppUser.getInstanceByGithubUser(oauthUser, this.oauth2Service.getCurrentPrimaryGithubEmailUserInfo());
         
         Map<String, Object> primaryGithubEmailUserInfo = this.oauth2Service.fetchPrimaryGithubEmailUserInfo();
 
         // cache email user info
-        this.currentPrimaryGithubEmailUserInfo = primaryGithubEmailUserInfo;
+        this.oauth2Service.setCurrentPrimaryGithubEmailUserInfo(primaryGithubEmailUserInfo);
 
         return AppUser.getInstanceByGithubUser(oauthUser, primaryGithubEmailUserInfo);
     }
