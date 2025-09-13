@@ -32,11 +32,9 @@ public class Oauth2Service {
     
 
     public boolean isPrincipalGithubUser(@Nullable Object principal) {
-
         return isOauth2Session(principal) &&
                ((DefaultOAuth2User) principal).getAttributes().containsKey("gists_url");
     }
-
 
     /**
      * Indicates whether the current session has been created using oauth2 (e.g. login with google)
@@ -45,28 +43,24 @@ public class Oauth2Service {
      * @return 
      */
     public boolean isOauth2Session(@Nullable Object principal) {
-
         return principal != null && principal instanceof DefaultOAuth2User;
     }
     
-
     /**
      * Indicates whether the current session has been created using oauth2 (e.g. login with google)
      * 
      * @return 
      */
     public boolean isOauth2Session() {
-
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return principal != null && principal instanceof DefaultOAuth2User;
+            return isOauth2Session(principal);
 
         // propably no authentication obj in context yet, may happen on application startup
         } catch (NullPointerException e) {
             return false;
         }
     }
-
 
     /**
      * Indicates whether the given defaultOauth2User is missing an email value.
@@ -75,10 +69,8 @@ public class Oauth2Service {
      * @return
      */
     public boolean isOauth2UserMissingEmail(@Nullable DefaultOAuth2User defaultOauth2User) {
-
         return defaultOauth2User != null && Utils.isBlank(defaultOauth2User.getAttribute("email"));
     }
-    
 
     /**
      * Get the access token of the current oauth2 session. Don't call this asynchronously as the current request is needed.
@@ -89,7 +81,6 @@ public class Oauth2Service {
      * @throws ResponseStatusException 401 if not logged in, 409 if logged in but {@code clientRegistrationId} does not match current oauth2 provider 
      */
     public String getCurrentOAuth2AccessToken(String clientRegistrationId) {
-
         if (Utils.isBlank(clientRegistrationId))
             throw new IllegalArgumentException("Failed to get current oauth2 access token. 'clientRegistrationId' cannot be blank");
         

@@ -26,7 +26,6 @@ public class CustomLoginFailureHandler implements AuthenticationFailureHandler {
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-
         int status = 401;
         response.setStatus(status);
 
