@@ -98,8 +98,7 @@ spring:
 logging:
     level:
         net:
-            code_notes:
-                backend: ${LOG_LEVEL}
+            code_notes: ${LOG_LEVEL}
     file:
         path: ${LOG_FILE_PATH}
         

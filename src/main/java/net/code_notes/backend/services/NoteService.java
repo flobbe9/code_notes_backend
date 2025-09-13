@@ -23,7 +23,6 @@ import net.code_notes.backend.repositories.NoteRepository;
 @Service
 @Log4j2
 public class NoteService extends AbstractService<Note> {
-
     @Autowired
     private NoteRepository noteRepository;
 
@@ -44,7 +43,6 @@ public class NoteService extends AbstractService<Note> {
      */
     @Deprecated(since = "1.0.0", forRemoval = true)
     public List<Note> getAllByCurrentAppUser() throws ResponseStatusException {
-
         AppUser appUser = this.appUserService.getCurrent();
 
         if (this.oauth2Service.isOauth2Session())
@@ -53,9 +51,7 @@ public class NoteService extends AbstractService<Note> {
         return this.noteRepository.findAllByAppUserEmailOrderByCreatedDesc(appUser.getEmail());
     }
 
-
     public long countByCurrentAppUser() {
-
         AppUser currentAppUser = this.appUserService.getCurrent();
 
         if (this.oauth2Service.isOauth2Session())
@@ -64,7 +60,6 @@ public class NoteService extends AbstractService<Note> {
         return this.noteRepository.countByAppUserEmail(currentAppUser.getEmail());
     }
 
-
     /**
      * @param pageNumber 0-based
      * @param pageSize the number of notes per page. Min 1
@@ -72,10 +67,8 @@ public class NoteService extends AbstractService<Note> {
      * @throws ResponseStatusException
      */
     // TODO
-        // shorten name
         // add params
     public List<Note> getByCurrentAppUserOrderByCreatedDescPageable(int pageNumber, int pageSize) throws ResponseStatusException {
-        
         AppUser appUser = this.appUserService.getCurrent();
 
         if (this.oauth2Service.isOauth2Session())
@@ -91,7 +84,6 @@ public class NoteService extends AbstractService<Note> {
         return this.noteRepository.findByAppUserEmailOrderByCreatedDesc(appUser.getEmail(), PageRequest.of(pageNumber, pageSize));
     }
 
-
     /**
      * Save or create given {@code note} and reference it to given {@code appUser}.
      * Also save or delete tags if necessary.
@@ -103,7 +95,6 @@ public class NoteService extends AbstractService<Note> {
      */
     @Override
     public Note save(Note note) throws ResponseStatusException, IllegalArgumentException {
-
         assertArgsNotNullAndNotBlankOrThrow(note);
 
         validateAndThrow(note);
@@ -120,21 +111,16 @@ public class NoteService extends AbstractService<Note> {
 
         return note;
     }
-    
 
     @Override
     protected Note saveNew(Note note) throws ResponseStatusException, IllegalArgumentException {
-
         return save(note);
     }
-
 
     @Override
     protected Note update(Note note) throws ResponseStatusException, IllegalArgumentException {
-
         return save(note);
     }
-
 
     /**
      * Save all notes from given list using {@link #save(Note)} method.
@@ -145,7 +131,6 @@ public class NoteService extends AbstractService<Note> {
      * @throws IllegalArgumentException if arg is null
      */
     public Collection<Note> saveAll(Collection<Note> notes) throws ResponseStatusException, IllegalArgumentException {
-
         assertArgsNotNullAndNotBlankOrThrow(notes);
 
         return notes
@@ -153,7 +138,6 @@ public class NoteService extends AbstractService<Note> {
             .map(note -> save(note))
             .toList();
     }
-    
 
     /**
      * Get given {@code note} with fields annotated with {@code @JsonIgnore}.
@@ -164,7 +148,6 @@ public class NoteService extends AbstractService<Note> {
      * @throws IllegalArgumentException
      */
     private Note setIgnoredFields(Note note, AppUser appUser) throws IllegalArgumentException {
-        
         assertArgsNotNullAndNotBlankOrThrow(note, appUser);
 
         note.setAppUser(appUser);
@@ -172,27 +155,23 @@ public class NoteService extends AbstractService<Note> {
         return note;
     }
 
-
     /**
      * @param id
      * @return note with given id or {@code null}
      */
     public Note getById(@Nullable Long id) {
-
         if (id == null)
             return null;
 
         return this.noteRepository.findById(id).orElse(null);
     }
 
-    
     /**
      * Delete note with given id if not {@code null} (wont throw).
      * 
      * @param id of the note to delete
      */
     public void delete(@Nullable Long id) {
-
         if (id == null)
             return;
 
