@@ -38,6 +38,7 @@ import net.code_notes.backend.repositories.NoteRepository;
 @Service
 @Log4j2
 public class NoteService extends AbstractService<Note> {
+    
     @Autowired
     private NoteRepository noteRepository;
 
