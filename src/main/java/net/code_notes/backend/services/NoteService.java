@@ -24,9 +24,9 @@ import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.abstracts.AbstractService;
 import net.code_notes.backend.abstracts.NoteInputType;
 import net.code_notes.backend.dto.NoteInputValueJpaDto;
+import net.code_notes.backend.dto.SearchNoteInputJpaDto;
 import net.code_notes.backend.dto.SearchNoteJpaDto;
 import net.code_notes.backend.dto.SearchNoteResultDto;
-import net.code_notes.backend.dto.SearchNoteInputJpaDto;
 import net.code_notes.backend.entities.AppUser;
 import net.code_notes.backend.entities.Note;
 import net.code_notes.backend.helpers.Utils;
@@ -52,25 +52,7 @@ public class NoteService extends AbstractService<Note> {
 
     @Autowired
     private NoteInputService noteInputService;
-    
 
-    /**
-     * @return all notes of the app user currently logged in
-     * @throws ResponseStatusException
-     * @deprecated use {@link #loadByCurrentAppUserOrderByCreatedDescPageable} instead
-     */
-    @Deprecated(since = "1.0.0", forRemoval = true)
-    public List<Note> getAllByCurrentAppUser() throws ResponseStatusException {
-        AppUser appUser = this.appUserService.getCurrent();
-
-        return this.noteRepository.findAllByAppUserEmailOrderByCreatedDesc(appUser.getEmail());
-    }
-
-    public long countByCurrentAppUser() {
-        AppUser currentAppUser = this.appUserService.getCurrent();
-
-        return this.noteRepository.countByAppUserEmail(currentAppUser.getEmail());
-    }
 
     /**
      * Loads notes of current app user and matches {@code searchPhrase} agains {@code note.title} and {@code note.codeNoteInputsWithVars.first.value}

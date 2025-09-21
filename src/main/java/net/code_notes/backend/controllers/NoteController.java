@@ -34,24 +34,6 @@ public class NoteController {
     @Autowired
     private NoteService noteService;
 
-
-    /**
-     * 
-     * @return
-     * @deprecated in favor of {@code /get-by-app_user-pageable} which supports pageable and search queries 
-     */
-    @GetMapping("/get-all-by-appUser")
-    @Operation(
-        description = "Gets all notes related to app user currently logged in. Uses default order 'created' - 'descending'. AuthRequirements: LOGGED_IN",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty)."),
-            @ApiResponse(responseCode = "401", description = "Not logged in")
-        }
-    )
-    @Deprecated(since = "1.0.0", forRemoval = true)
-    public Flux<Note> getAllByAppUser() {
-        return Flux.fromIterable(this.noteService.getAllByCurrentAppUser());
-    }
     
     @GetMapping("/get-by-app_user-pageable")
     @Operation(
@@ -73,18 +55,6 @@ public class NoteController {
         @RequestParam Optional<List<String>> tagNames
     ) {
         return Mono.just(this.noteService.loadByCurrentAppUserSortedAndSearch(PageRequest.of(pageNumber, pageSize), searchPhrase.orElse(null), tagNames.orElse(null)));
-    }
-
-    @GetMapping("/count-by-app_user")
-    @Operation(
-        description = "Returns the total number of notes of the current app user. AuthRequirements: LOGGED_IN",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Got the count"),
-            @ApiResponse(responseCode = "401", description = "Not logged in")
-        }
-    )
-    public Mono<Long> countAll() {
-        return Mono.just(this.noteService.countByCurrentAppUser());
     }
 
     @PostMapping("/save")

@@ -29,9 +29,6 @@ public interface NoteRepository extends AbstractRepository<Note> {
     List<SearchNoteJpaDto> findByAppUserEmailAndTags_NameIn(String email, List<String> tagNames);
     List<SearchNoteJpaDto> findByAppUserEmail(String email);
     
-    long countByAppUserOauth2Id(String oauth2Id);
-    long countByAppUserEmail(String email);
     long countByAppUserEmailOrderByCreatedDesc(String email, PageRequest pageRequest);
-    long countByAppUserEmailAndTags_NameInOrderByCreatedDesc(String email, List<String> tagNames,
-            PageRequest pageRequest);
+    long countByAppUserEmailAndTags_NameInOrderByCreatedDesc(String email, List<String> tagNames, PageRequest pageRequest);
 }
