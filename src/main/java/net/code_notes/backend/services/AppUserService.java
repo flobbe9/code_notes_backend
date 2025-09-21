@@ -68,9 +68,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
     @Autowired
     private AsyncService asyncService;
 
-    /** The user info object containing the primary email of a github user. Will be set in {@link #getCurrentGithub()} */
-    private Map<String, Object> currentPrimaryGithubEmailUserInfo;
-
 
     /**
      * @param principal the current app user
@@ -164,13 +161,13 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         DefaultOAuth2User oauthUser = ((DefaultOAuth2User) principal);
                 
         // case: github email has been cached
-        if (this.currentPrimaryGithubEmailUserInfo != null) 
-            return AppUser.getInstanceByGithubUser(oauthUser, this.currentPrimaryGithubEmailUserInfo);
+        if (this.oauth2Service.getCurrentPrimaryGithubEmailUserInfo() != null)
+            return AppUser.getInstanceByGithubUser(oauthUser, this.oauth2Service.getCurrentPrimaryGithubEmailUserInfo());
         
         Map<String, Object> primaryGithubEmailUserInfo = this.oauth2Service.fetchPrimaryGithubEmailUserInfo();
 
         // cache email user info
-        this.currentPrimaryGithubEmailUserInfo = primaryGithubEmailUserInfo;
+        this.oauth2Service.setCurrentPrimaryGithubEmailUserInfo(primaryGithubEmailUserInfo);
 
         return AppUser.getInstanceByGithubUser(oauthUser, primaryGithubEmailUserInfo);
     }
@@ -304,7 +301,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @throws IllegalArgumentException
      */
     public AppUser loadUser(AppUser appUser) throws IllegalArgumentException {
-
         assertArgsNotNullAndNotBlankOrThrow(appUser);
 
         try {
@@ -314,33 +310,28 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
             return null;
         }
     }
-    
 
     /**
      * @param oauth2Id
      * @return the user with given {@code oauth2Id} or {@code null} (wont throw)
      */
     public AppUser loadByOauth2Id(@Nullable String oauth2Id) {
-
         if (isBlank(oauth2Id))
             return null;
 
         return this.appUserRepository.findByOauth2Id(oauth2Id).orElse(null);
     }
         
-
     /**
      * @param email
      * @return the user with given {@code email} or {@code null} (wont throw)
      */
     public AppUser loadByEmail(@Nullable String email) {
-
         if (isBlank(email))
             return null;
 
         return this.appUserRepository.findByEmail(email).orElse(null);
     }
-
 
     /**
      * Delete appUser with given {@code id} from db. Wont throw if does not exist
@@ -515,7 +506,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * Invalidates current session. Wont throw if already logged out. Don't call this asynchronously as the current request is needed to get the session
      */
     public void logout() {
-
         SecurityContextHolder.clearContext();
         
         HttpSession session = Utils.getCurrentRequest().getSession(false);

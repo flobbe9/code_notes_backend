@@ -12,10 +12,13 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.context.annotation.SessionScope;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
+import lombok.Setter;
 import net.code_notes.backend.helpers.Utils;
 
 
@@ -25,10 +28,16 @@ import net.code_notes.backend.helpers.Utils;
  * @since 0.0.1
  */
 @Service
+@SessionScope
 public class Oauth2Service {
             
     @Autowired
     private OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
+    
+    /** The user info object containing the primary email of a github user. Will be set in {@link #getCurrentGithub()} */
+    @Getter
+    @Setter
+    private Map<String, Object> currentPrimaryGithubEmailUserInfo;
     
 
     public boolean isPrincipalGithubUser(@Nullable Object principal) {

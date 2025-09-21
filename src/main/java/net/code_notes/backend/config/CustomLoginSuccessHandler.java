@@ -1,6 +1,6 @@
 package net.code_notes.backend.config;
 
-import static net.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlank;
+import static net.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
 
 import java.io.IOException;
 
@@ -109,8 +109,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
      * @throws IOException
      */
     private void writeOrRedirectResponse(HttpServletResponse response, boolean isOauth2, String redirectPath, Exception exception) throws JsonProcessingException, IllegalArgumentException, IOException {
-
-        assertArgsNotNullAndNotBlank(response, 1, redirectPath, exception);
+        assertArgsNotNullAndNotBlankOrThrow(response, 1, redirectPath, exception);
 
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         if (exception instanceof ResponseStatusException)

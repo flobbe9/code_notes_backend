@@ -31,7 +31,6 @@ public class TagService extends AbstractService<Tag> {
 
     @Override
     public Tag save(Tag tag) {
-
         Utils.assertArgsNotNullAndNotBlankOrThrow(tag);
 
         AppUser appUser = this.appUserService.getCurrent();
@@ -80,21 +79,21 @@ public class TagService extends AbstractService<Tag> {
             
         // map tags from db
         return note.getTags()
-                    .stream()
-                    .map(tag -> {
-                        Tag tagFromDb = this.tagRepository
-                            .findByNameAndAppUser(tag.getName(), appUser)
-                            .orElse(null);
+            .stream()
+            .map(tag -> {
+                Tag tagFromDb = this.tagRepository
+                    .findByNameAndAppUser(tag.getName(), appUser)
+                    .orElse(null);
 
-                        // case: new tag
-                        if (tagFromDb == null)
-                            return saveNew(tag, appUser);
-                            
-                        // case: existing tag
-                        else
-                            return tagFromDb;
-                    })
-                    .toList();
+                // case: new tag
+                if (tagFromDb == null)
+                    return saveNew(tag, appUser);
+                    
+                // case: existing tag
+                else
+                    return tagFromDb;
+            })
+            .toList();
     }
 
 
@@ -103,7 +102,6 @@ public class TagService extends AbstractService<Tag> {
      * @return list of all tags in db related to given {@code appUser} or an empty list
      */
     public List<Tag> getAllByUser(@Nullable AppUser appUser) {
-
         if (appUser == null)
             return new ArrayList<>();
 
