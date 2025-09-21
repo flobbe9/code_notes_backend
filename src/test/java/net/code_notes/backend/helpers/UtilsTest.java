@@ -78,7 +78,7 @@ public class UtilsTest {
         int startIndex = pageIndex * pageSize;
         assertTrue(pageIndex == 0);
         // num results
-        assertEquals(list.size() % pageSize, Utils.paginate(list, pageIndex, pageSize).size());
+        assertEquals(pageSize, Utils.paginate(list, pageIndex, pageSize).size());
         // start element
         assertEquals(list.get(startIndex), Utils.paginate(list, pageIndex, pageSize).get(0));
 
