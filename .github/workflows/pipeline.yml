@@ -1,4 +1,4 @@
-name: code_notes_backend main
+name: code_notes_backend
 
 run-name: ${{ github.event.head_commit.message }}
 on: 
