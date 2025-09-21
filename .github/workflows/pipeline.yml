@@ -1,0 +1,126 @@
+name: code_notes_backend main
+
+run-name: ${{ github.event.head_commit.message }}
+on: 
+  workflow_dispatch:
+  push: 
+    branches:
+      - dev
+
+jobs:
+  # dev and prod
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository 
+        uses: actions/checkout@v4.2.2
+      - name: Setup JDK
+        uses: actions/setup-java@v4.6.0
+        with: 
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Start db for build context
+        run: docker compose -f 'docker-compose.dev.yml' up db -d   
+      - name: Build and test with informative logs (-i)
+        run: gradle clean build -i
+  
+  # prod
+  push_to_Dockerhub:
+    # NOTE: ${{}} syntax does not work here
+    if: (github.head_ref || github.ref_name) == 'main'
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository 
+        uses: actions/checkout@v4.2.2
+  
+      - name: move .env vars to pipeline
+        run: |
+          echo $(cat .env.version | grep '^VERSION=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^API_NAME=.*$') >> $GITHUB_ENV
+        shell: bash
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Build and push
+        uses: docker/build-push-action@v6.10.0
+        with:
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:${{env.VERSION}}
+          build-args: |
+            VERSION=${{env.VERSION}}
+            API_NAME=${{env.API_NAME}}
+
+  deploy_to_server:
+    runs-on: ubuntu-latest
+    needs: push_to_Dockerhub
+
+    steps:
+      - name: Checkout repository 
+        uses: actions/checkout@v4.2.2
+        
+      - name: Copy some files to remote
+        uses: appleboy/scp-action@v0.1.7
+        with:
+            host: ${{ vars.SSH_HOST }}
+            username: ${{ secrets.SSH_USER_NAME }}
+            password: ${{ secrets.SSH_PASSWORD }}
+            source: writeToEnvFile.sh
+            target: ./${{ vars.SSH_TARGET_FOLDER }}
+            debug: true
+
+      - name: Move .env vars to pipeline env
+        run: |
+          echo $(cat .env | grep '^PORT=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^DB_PORT=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^DB_VERSION=.*$') >> $GITHUB_ENV
+        shell: bash
+
+      - name: Write env to server .env file, then pull, rerun and clean up
+        uses: appleboy/ssh-action@v1.2.0
+        with: 
+          host: ${{ vars.SSH_HOST }}
+          username: ${{ secrets.SSH_USER_NAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          debug: true
+          script: |
+            chmod 777 ./${{ vars.SSH_TARGET_FOLDER }}/writeToEnvFile.sh 
+            ./${{ vars.SSH_TARGET_FOLDER }}/writeToEnvFile.sh \
+              BACKEND_OAUTH2_CLIENT_ID_GOOGLE='${{secrets.OAUTH2_CLIENT_ID_GOOGLE}}' \
+              BACKEND_OAUTH2_CLIENT_SECRET_GOOGLE='${{secrets.OAUTH2_CLIENT_SECRET_GOOGLE}}' \
+              BACKEND_OAUTH2_CLIENT_ID_GITHUB='${{secrets.OAUTH2_CLIENT_ID_GITHUB}}' \
+              BACKEND_OAUTH2_CLIENT_SECRET_GITHUB='${{secrets.OAUTH2_CLIENT_SECRET_GITHUB}}' \
+              BACKEND_OAUTH2_CLIENT_ID_AZURE='${{secrets.OAUTH2_CLIENT_ID_AZURE}}' \
+              BACKEND_OAUTH2_CLIENT_SECRET_AZURE='${{secrets.OAUTH2_CLIENT_SECRET_AZURE}}' \
+              BACKEND_SSL_KEY_STORE_PASSWORD='${{secrets.SSL_KEY_STORE_PASSWORD}}' \
+              BACKEND_PORT='${{env.PORT}}' \
+              BACKEND_MAIL_USER='${{secrets.MAIL_USER}}' \
+              BACKEND_MAIL_PASSWORD='${{secrets.MAIL_PASSWORD}}' \
+              BACKEND_DEFAULT_ADMIN_EMAIL='${{ secrets.DEFAULT_ADMIN_EMAIL }}' \
+              BACKEND_DEFAULT_ADMIN_PASSWORD='${{ secrets.DEFAULT_ADMIN_PASSWORD }}' \
+              DB_USER='${{secrets.DB_USER}}' \
+              DB_PASSWORD='${{secrets.DB_PASSWORD}}' \
+              DB_ROOT_PASSWORD='${{secrets.DB_ROOT_PASSWORD}}' \
+              DB_PORT='${{env.DB_PORT}}' \
+              DB_VERSION='${{env.DB_VERSION}}' \
+              DOCKERHUB_USER='${{secrets.DOCKERHUB_USERNAME}}'
+
+            docker compose -f './${{ vars.SSH_TARGET_FOLDER }}/docker-compose.yml' pull backend
+            yes | docker rm $(docker container ls --all --filter=ancestor=$(docker images -f "dangling=true" -q) --format "{{.ID}}") --force
+            yes | docker image rm $(docker images -f "dangling=true" -q)
+            docker compose -f './${{ vars.SSH_TARGET_FOLDER }}/docker-compose.yml' up backend -d
+            yes | docker volume prune
