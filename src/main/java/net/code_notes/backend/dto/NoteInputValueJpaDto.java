@@ -3,7 +3,7 @@ package net.code_notes.backend.dto;
 /**
  * @since latest
  */
-public interface NoteInputValueDto {
+public interface NoteInputValueJpaDto {
     
     String getValue();
 }

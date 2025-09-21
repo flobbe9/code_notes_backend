@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Nullable;
-import net.code_notes.backend.dto.NoteInputValueDto;
+import net.code_notes.backend.dto.NoteInputValueJpaDto;
 import net.code_notes.backend.entities.NoteInput;
 import net.code_notes.backend.repositories.NoteInputRepository;
 
@@ -29,7 +29,7 @@ public class NoteInputService {
     }
 
     @Nullable
-    public NoteInputValueDto loadValueById(@Nullable Long id) {
+    public NoteInputValueJpaDto loadValueById(@Nullable Long id) {
         if (id == null)
             return null;
 

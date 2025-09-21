@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import net.code_notes.backend.dto.SearchNoteResultDto;
 import net.code_notes.backend.entities.Note;
 import net.code_notes.backend.services.NoteService;
 import reactor.core.publisher.Flux;
@@ -32,8 +33,8 @@ public class NoteController {
 
     @Autowired
     private NoteService noteService;
-    
-    
+
+
     /**
      * 
      * @return
@@ -55,7 +56,7 @@ public class NoteController {
     @GetMapping("/get-by-app_user-pageable")
     @Operation(
         description = """
-            Gets a page of notes related to app user currently logged in. \n
+            Gets a page of notes related to app user currently logged in and the total count of all results (all pages). \n
             Accepts optional params for tag filtering and user search input. \n
             Sorts by search result match and 'note.created' descending.\n
             AuthRequirements: LOGGED_IN
@@ -65,13 +66,13 @@ public class NoteController {
             @ApiResponse(responseCode = "401", description = "Not logged in")
         }
     )
-    public Flux<Note> getByAppUserPageable(
+    public Mono<SearchNoteResultDto> getByAppUserPageable(
         @RequestParam @Min(0) int pageNumber, 
         @RequestParam @Min(1) int pageSize,
         @RequestParam Optional<String> searchPhrase,
         @RequestParam Optional<List<String>> tagNames
     ) {
-        return Flux.fromIterable(this.noteService.loadByCurrentAppUserSortedAndSearch(PageRequest.of(pageNumber, pageSize), searchPhrase.orElse(null), tagNames.orElse(null)));
+        return Mono.just(this.noteService.loadByCurrentAppUserSortedAndSearch(PageRequest.of(pageNumber, pageSize), searchPhrase.orElse(null), tagNames.orElse(null)));
     }
 
     @GetMapping("/count-by-app_user")

@@ -9,7 +9,7 @@ import java.util.List;
  * 
  * @since latest
  */
-public interface SearchNoteDto {
+public interface SearchNoteJpaDto {
 
     Long getId();
 
@@ -17,5 +17,5 @@ public interface SearchNoteDto {
     
     String getTitle();
 
-    List<SearchNoteInputDto> getNoteInputs();
+    List<SearchNoteInputJpaDto> getNoteInputs();
 }

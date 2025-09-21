@@ -4,6 +4,7 @@ import static net.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankO
 import static net.code_notes.backend.helpers.Utils.assertArgsNullOrBlank;
 import static net.code_notes.backend.helpers.Utils.isBlank;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,9 +23,10 @@ import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.abstracts.AbstractService;
 import net.code_notes.backend.abstracts.NoteInputType;
-import net.code_notes.backend.dto.NoteInputValueDto;
-import net.code_notes.backend.dto.SearchNoteDto;
-import net.code_notes.backend.dto.SearchNoteInputDto;
+import net.code_notes.backend.dto.NoteInputValueJpaDto;
+import net.code_notes.backend.dto.SearchNoteJpaDto;
+import net.code_notes.backend.dto.SearchNoteResultDto;
+import net.code_notes.backend.dto.SearchNoteInputJpaDto;
 import net.code_notes.backend.entities.AppUser;
 import net.code_notes.backend.entities.Note;
 import net.code_notes.backend.helpers.Utils;
@@ -84,30 +86,38 @@ public class NoteService extends AbstractService<Note> {
      * @return matching notes or empty list, never {@code null}
      */
     @NonNull
-    public List<Note> loadByCurrentAppUserSortedAndSearch(@NonNull PageRequest pageRequest, String searchPhrase, List<String> tagNames) {
+    public SearchNoteResultDto loadByCurrentAppUserSortedAndSearch(@NonNull PageRequest pageRequest, String searchPhrase, List<String> tagNames) {
         assertArgsNotNullAndNotBlankOrThrow(pageRequest);
 
         AppUser currentAppUser = this.appUserService.getCurrent();
         boolean isFilterByTags = tagNames != null && !tagNames.isEmpty();
+        long count = 0;
+        List<Note> results = new ArrayList<>();
 
         // case: no search phrase
         if (isBlank(searchPhrase)) {
             // case: no search input at all, just sort and return pageable
-            if (!isFilterByTags)
-                return loadByCurrentAppUserSorted(pageRequest);
-
+            if (!isFilterByTags) {
+                count = this.noteRepository.countByAppUserEmailOrderByCreatedDesc(currentAppUser.getEmail(), pageRequest);
+                results = this.noteRepository.findByAppUserEmailOrderByCreatedDesc(currentAppUser.getEmail(), pageRequest);
+                
             // case: only filter by tags, sort and pageable
-            return this.noteRepository.findByAppUserEmailAndTags_NameInOrderByCreatedDesc(currentAppUser.getEmail(), tagNames, pageRequest);
+            } else {
+                count = this.noteRepository.countByAppUserEmailAndTags_NameInOrderByCreatedDesc(currentAppUser.getEmail(), tagNames, pageRequest);
+                results = this.noteRepository.findByAppUserEmailAndTags_NameInOrderByCreatedDesc(currentAppUser.getEmail(), tagNames, pageRequest);
+            }
+            
+            return new SearchNoteResultDto(results, count);
         }
             
         // load minimized notes
-        List<SearchNoteDto> noteDtos = null;
+        List<SearchNoteJpaDto> noteDtos = null;
         if (isFilterByTags)
             noteDtos = this.noteRepository.findByAppUserEmailAndTags_NameIn(currentAppUser.getEmail(), tagNames);
         else
             noteDtos = this.noteRepository.findByAppUserEmail(currentAppUser.getEmail());
 
-        Map<SearchNoteDto, Double> resultNoteDtos = new LinkedHashMap<>();        
+        Map<SearchNoteJpaDto, Double> resultNoteDtos = new LinkedHashMap<>();        
 
         // search
         noteDtos.stream()
@@ -126,19 +136,23 @@ public class NoteService extends AbstractService<Note> {
                     resultNoteDtos.put(noteDto, ratingPoints);
             });
 
+        count = resultNoteDtos.size();
+
         // sort by created desc and rating points (prioritise rating points)
-        List<Entry<SearchNoteDto, Double>> sortedNoteDtos = resultNoteDtos.entrySet().stream()
+        List<Entry<SearchNoteJpaDto, Double>> sortedNoteDtos = resultNoteDtos.entrySet().stream()
             .sorted((entry1, entry2) -> entry2.getKey().getCreated().compareTo(entry1.getKey().getCreated()))
             .sorted((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()))
             .toList();
 
-        return Utils
+        results = Utils
             // paginate    
             .paginate(sortedNoteDtos, pageRequest.getPageNumber(), pageRequest.getPageSize())
             // load actual notes
             .stream()
             .map(entry -> loadById(entry.getKey().getId()))
             .toList();
+
+        return new SearchNoteResultDto(results, count);
     }
 
     /**
@@ -148,12 +162,12 @@ public class NoteService extends AbstractService<Note> {
      * @param searchPhrase to match input value against
      * @return the rating points returned by {@code SearchUtils.matchPhrases}, 0 if invalid args or no input present
      */
-    private double matchFirstCodeNoteInputWithVariablesValue(SearchNoteDto noteDto, String searchPhrase) {
+    private double matchFirstCodeNoteInputWithVariablesValue(SearchNoteJpaDto noteDto, String searchPhrase) {
         if (assertArgsNullOrBlank(noteDto, searchPhrase))
             return 0;
 
         // find input with vars
-        SearchNoteInputDto firstCodeNoteInputWithVariablesDto = noteDto.getNoteInputs()
+        SearchNoteInputJpaDto firstCodeNoteInputWithVariablesDto = noteDto.getNoteInputs()
             .stream()
             .filter(noteInput -> noteInput.getType().equals(NoteInputType.CODE_WITH_VARIABLES))
             .findFirst()
@@ -164,7 +178,7 @@ public class NoteService extends AbstractService<Note> {
         // case: found an input with vars
         if (firstCodeNoteInputWithVariablesDto != null) {
             // load value
-            NoteInputValueDto firstCodeNoteInputWithVariables = this.noteInputService.loadValueById(firstCodeNoteInputWithVariablesDto.getId());
+            NoteInputValueJpaDto firstCodeNoteInputWithVariables = this.noteInputService.loadValueById(firstCodeNoteInputWithVariablesDto.getId());
 
             // sanitize all html
             String value = firstCodeNoteInputWithVariables.getValue();
@@ -180,22 +194,6 @@ public class NoteService extends AbstractService<Note> {
         return ratingPointsCodeInputWithVariables;
     }
 
-    /**
-     * Sort by created desc.
-     * 
-     * @param pageRequest 0
-     * @return a page of notes related to the current app user
-     * @throws IllegalArgumentException
-     * @throws ResponseStatusException
-     */
-    private List<Note> loadByCurrentAppUserSorted(@NonNull PageRequest pageRequest) throws ResponseStatusException {
-        assertArgsNotNullAndNotBlankOrThrow(pageRequest);
-
-        AppUser appUser = this.appUserService.getCurrent();
-
-        return this.noteRepository.findByAppUserEmailOrderByCreatedDesc(appUser.getEmail(), pageRequest);
-    }
-    
     /**
      * Save or create given {@code note} and reference it to given {@code appUser}.
      * Also save or delete tags if necessary.

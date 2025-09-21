@@ -3,7 +3,7 @@ package net.code_notes.backend.repositories;
 import org.springframework.stereotype.Repository;
 
 import net.code_notes.backend.abstracts.AbstractRepository;
-import net.code_notes.backend.dto.NoteInputValueDto;
+import net.code_notes.backend.dto.NoteInputValueJpaDto;
 import net.code_notes.backend.entities.NoteInput;
 
 
@@ -13,5 +13,5 @@ import net.code_notes.backend.entities.NoteInput;
 @Repository
 public interface NoteInputRepository extends AbstractRepository<NoteInput> {
 
-    NoteInputValueDto getValueById(Long id);
+    NoteInputValueJpaDto getValueById(Long id);
 }

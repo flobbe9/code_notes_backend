@@ -8,7 +8,7 @@ import net.code_notes.backend.abstracts.NoteInputType;
  * 
  * @since latest
  */
-public interface SearchNoteInputDto {
+public interface SearchNoteInputJpaDto {
 
     Long getId();
 
