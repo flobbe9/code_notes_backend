@@ -101,4 +101,3 @@ logging:
             code_notes: ${LOG_LEVEL}
     file:
         path: ${LOG_FILE_PATH}
-        

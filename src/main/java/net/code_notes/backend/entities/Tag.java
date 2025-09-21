@@ -21,7 +21,7 @@ import net.code_notes.backend.abstracts.AbstractEntity;
 
 
 /**
- * Entity defining a tag a note can have to improove searching and sorting. Use only {@code name} for equals and hashcode.
+ * Entity defining a tag a note can have to improove searching and sorting. Use only {@code name} and {@code appUser} for equals and hashcode.
  * <p>
  * Is unique to an {@code appUser}.
  * 
@@ -32,7 +32,7 @@ import net.code_notes.backend.abstracts.AbstractEntity;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class Tag extends AbstractEntity {
 
     private static final int NAME_MAX_LENGTH = 50;
@@ -40,6 +40,7 @@ public class Tag extends AbstractEntity {
     @Column(nullable = false, length = NAME_MAX_LENGTH)
     @NotBlank(message = "'name' cannot be blank")
     @Size(max = NAME_MAX_LENGTH, message = "'name' cannot have more charactes than " + NAME_MAX_LENGTH)
+    @EqualsAndHashCode.Include
     private String name;
 
     @ManyToMany
@@ -54,5 +55,6 @@ public class Tag extends AbstractEntity {
 
     @ManyToOne
     @JsonIgnore
+    @EqualsAndHashCode.Include
     private AppUser appUser;
 }

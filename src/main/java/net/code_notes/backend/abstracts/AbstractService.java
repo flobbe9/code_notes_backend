@@ -28,7 +28,6 @@ abstract public class AbstractService<T extends AbstractEntity> {
      * @throws IllegalArgumentException if {@code entity} is {@code null}
      */
     public T save(T entity) throws ResponseStatusException, IllegalArgumentException {
-
         // case: falsy param
         if (entity == null)
             throw new IllegalArgumentException("Failed to save entity. 'entity' cannot be null");
@@ -72,7 +71,6 @@ abstract public class AbstractService<T extends AbstractEntity> {
      * @throws ResponseStatusException if {@code entity} is invalid
      */
     protected boolean validateAndThrow(T note) {
-
         // case: falsy param
         if (note == null)
             throw new IllegalArgumentException("Failed to validate entity. 'entity' cannot be null");

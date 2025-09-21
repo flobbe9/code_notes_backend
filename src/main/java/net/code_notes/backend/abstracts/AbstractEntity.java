@@ -77,7 +77,6 @@ public abstract class AbstractEntity {
 
     @Override 
     public boolean equals(Object other) {
-
         if (other == null)
             return false;
 
@@ -98,7 +97,6 @@ public abstract class AbstractEntity {
 
     @Override
     public int hashCode() {
-
         int hash = 7;
 
         hash = 31 * hash + (this.id == null ? 0 : this.id.intValue());
@@ -110,7 +108,6 @@ public abstract class AbstractEntity {
 
     @Override
     public String toString() {
-
         return this.getClass().getSimpleName() + " with id: " + this.id;
     }
 }

@@ -1,19 +1,34 @@
 package net.code_notes.backend.services;
 
 import static net.code_notes.backend.helpers.Utils.assertArgsNotNullAndNotBlankOrThrow;
+import static net.code_notes.backend.helpers.Utils.assertArgsNullOrBlank;
+import static net.code_notes.backend.helpers.Utils.isBlank;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.abstracts.AbstractService;
+import net.code_notes.backend.abstracts.NoteInputType;
+import net.code_notes.backend.dto.NoteInputValueDto;
+import net.code_notes.backend.dto.SearchNoteDto;
+import net.code_notes.backend.dto.SearchNoteInputDto;
 import net.code_notes.backend.entities.AppUser;
 import net.code_notes.backend.entities.Note;
+import net.code_notes.backend.helpers.Utils;
+import net.code_notes.backend.helpers.search.SearchStringUtils;
 import net.code_notes.backend.repositories.NoteRepository;
 
 
@@ -33,20 +48,17 @@ public class NoteService extends AbstractService<Note> {
     private AppUserService appUserService;
 
     @Autowired
-    private Oauth2Service oauth2Service;
-
+    private NoteInputService noteInputService;
+    
 
     /**
      * @return all notes of the app user currently logged in
      * @throws ResponseStatusException
-     * @deprecated use {@link #getByCurrentAppUserOrderByCreatedDescPageable} instead
+     * @deprecated use {@link #loadByCurrentAppUserOrderByCreatedDescPageable} instead
      */
     @Deprecated(since = "1.0.0", forRemoval = true)
     public List<Note> getAllByCurrentAppUser() throws ResponseStatusException {
         AppUser appUser = this.appUserService.getCurrent();
-
-        if (this.oauth2Service.isOauth2Session())
-            return this.noteRepository.findAllByAppUserOauth2IdOrderByCreatedDesc(appUser.getOauth2Id());
 
         return this.noteRepository.findAllByAppUserEmailOrderByCreatedDesc(appUser.getEmail());
     }
@@ -54,36 +66,135 @@ public class NoteService extends AbstractService<Note> {
     public long countByCurrentAppUser() {
         AppUser currentAppUser = this.appUserService.getCurrent();
 
-        if (this.oauth2Service.isOauth2Session())
-            return this.noteRepository.countByAppUserOauth2Id(currentAppUser.getOauth2Id());
-
         return this.noteRepository.countByAppUserEmail(currentAppUser.getEmail());
     }
 
     /**
-     * @param pageNumber 0-based
-     * @param pageSize the number of notes per page. Min 1
-     * @return a page of notes related to the current app user
-     * @throws ResponseStatusException
+     * Loads notes of current app user and matches {@code searchPhrase} agains {@code note.title} and {@code note.codeNoteInputsWithVars.first.value}
+     * only returning results that have at least one match AND contain all {@code tagNames}.<p>
+     * 
+     * If {@code searchPhrase} is not specified, just apply {@code tagNames} and if those are missing too, load notes unfiltered.<p>
+     * 
+     * Sort by created desc and search accuracy (prioritise search accuracy).
+     *  
+     * @param pageRequest for pagination
+     * @param searchPhrase e.g. user searchbar input
+     * @param tagNames 
+     * @return matching notes or empty list, never {@code null}
      */
-    // TODO
-        // add params
-    public List<Note> getByCurrentAppUserOrderByCreatedDescPageable(int pageNumber, int pageSize) throws ResponseStatusException {
-        AppUser appUser = this.appUserService.getCurrent();
+    @NonNull
+    public List<Note> loadByCurrentAppUserSortedAndSearch(@NonNull PageRequest pageRequest, String searchPhrase, List<String> tagNames) {
+        assertArgsNotNullAndNotBlankOrThrow(pageRequest);
 
-        if (this.oauth2Service.isOauth2Session())
-            return this.noteRepository.findByAppUserOauth2IdOrderByCreatedDesc(appUser.getOauth2Id(), PageRequest.of(pageNumber, pageSize));
+        AppUser currentAppUser = this.appUserService.getCurrent();
+        boolean isFilterByTags = tagNames != null && !tagNames.isEmpty();
 
-        // search and consider
-            // oauth2
-            // pagenum
-            // pagesize
-            // searchphrase
-            // searchtags
+        // case: no search phrase
+        if (isBlank(searchPhrase)) {
+            // case: no search input at all, just sort and return pageable
+            if (!isFilterByTags)
+                return loadByCurrentAppUserSorted(pageRequest);
 
-        return this.noteRepository.findByAppUserEmailOrderByCreatedDesc(appUser.getEmail(), PageRequest.of(pageNumber, pageSize));
+            // case: only filter by tags, sort and pageable
+            return this.noteRepository.findByAppUserEmailAndTags_NameInOrderByCreatedDesc(currentAppUser.getEmail(), tagNames, pageRequest);
+        }
+            
+        // load minimized notes
+        List<SearchNoteDto> noteDtos = null;
+        if (isFilterByTags)
+            noteDtos = this.noteRepository.findByAppUserEmailAndTags_NameIn(currentAppUser.getEmail(), tagNames);
+        else
+            noteDtos = this.noteRepository.findByAppUserEmail(currentAppUser.getEmail());
+
+        Map<SearchNoteDto, Double> resultNoteDtos = new LinkedHashMap<>();        
+
+        // search
+        noteDtos.stream()
+            .forEach(noteDto -> {
+                // match note.title
+                double ratingPoints = SearchStringUtils.matchPhrases(searchPhrase, noteDto.getTitle());
+
+                // match note.codeNoteInputsWithVars.first.value
+                double ratingPointsCodeInputWithVariables = matchFirstCodeNoteInputWithVariablesValue(noteDto, searchPhrase);
+                // case: is a better match than note.title
+                if (ratingPointsCodeInputWithVariables > ratingPoints)
+                    ratingPoints = ratingPointsCodeInputWithVariables;
+                
+                // only show matches
+                if (ratingPoints > 0)
+                    resultNoteDtos.put(noteDto, ratingPoints);
+            });
+
+        // sort by created desc and rating points (prioritise rating points)
+        List<Entry<SearchNoteDto, Double>> sortedNoteDtos = resultNoteDtos.entrySet().stream()
+            .sorted((entry1, entry2) -> entry2.getKey().getCreated().compareTo(entry1.getKey().getCreated()))
+            .sorted((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()))
+            .toList();
+
+        return Utils
+            // paginate    
+            .paginate(sortedNoteDtos, pageRequest.getPageNumber(), pageRequest.getPageSize())
+            // load actual notes
+            .stream()
+            .map(entry -> loadById(entry.getKey().getId()))
+            .toList();
     }
 
+    /**
+     * Match {@code searchPhrase} against the firt code note input with vars if present. Use the inputs sanitized value.
+     * 
+     * @param noteDto possibly containing the code note input with vars
+     * @param searchPhrase to match input value against
+     * @return the rating points returned by {@code SearchUtils.matchPhrases}, 0 if invalid args or no input present
+     */
+    private double matchFirstCodeNoteInputWithVariablesValue(SearchNoteDto noteDto, String searchPhrase) {
+        if (assertArgsNullOrBlank(noteDto, searchPhrase))
+            return 0;
+
+        // find input with vars
+        SearchNoteInputDto firstCodeNoteInputWithVariablesDto = noteDto.getNoteInputs()
+            .stream()
+            .filter(noteInput -> noteInput.getType().equals(NoteInputType.CODE_WITH_VARIABLES))
+            .findFirst()
+            .orElse(null);
+
+        double ratingPointsCodeInputWithVariables = 0;
+
+        // case: found an input with vars
+        if (firstCodeNoteInputWithVariablesDto != null) {
+            // load value
+            NoteInputValueDto firstCodeNoteInputWithVariables = this.noteInputService.loadValueById(firstCodeNoteInputWithVariablesDto.getId());
+
+            // sanitize all html
+            String value = firstCodeNoteInputWithVariables.getValue();
+            PolicyFactory policy = new HtmlPolicyBuilder()
+                .allowElements()
+                .toFactory();
+            if (!isBlank(value))
+                value = policy.sanitize(value);
+
+            ratingPointsCodeInputWithVariables = SearchStringUtils.matchPhrases(searchPhrase, value);
+        }
+
+        return ratingPointsCodeInputWithVariables;
+    }
+
+    /**
+     * Sort by created desc.
+     * 
+     * @param pageRequest 0
+     * @return a page of notes related to the current app user
+     * @throws IllegalArgumentException
+     * @throws ResponseStatusException
+     */
+    private List<Note> loadByCurrentAppUserSorted(@NonNull PageRequest pageRequest) throws ResponseStatusException {
+        assertArgsNotNullAndNotBlankOrThrow(pageRequest);
+
+        AppUser appUser = this.appUserService.getCurrent();
+
+        return this.noteRepository.findByAppUserEmailOrderByCreatedDesc(appUser.getEmail(), pageRequest);
+    }
+    
     /**
      * Save or create given {@code note} and reference it to given {@code appUser}.
      * Also save or delete tags if necessary.
@@ -159,7 +270,7 @@ public class NoteService extends AbstractService<Note> {
      * @param id
      * @return note with given id or {@code null}
      */
-    public Note getById(@Nullable Long id) {
+    public Note loadById(@Nullable Long id) {
         if (id == null)
             return null;
 

@@ -24,7 +24,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.code_notes.backend.abstracts.AbstractEntity;
 
-
 /**
  * Entity defining a note. Contains inputs and tags. Use default equals and hash code.
  * 

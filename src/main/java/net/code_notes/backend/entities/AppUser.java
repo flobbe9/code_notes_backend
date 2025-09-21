@@ -26,6 +26,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -44,11 +45,13 @@ import net.code_notes.backend.helpers.Utils;
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class AppUser extends AbstractEntity implements UserDetails, NeedsDeletionRecord {
 
     @Column(unique = true, nullable = false)
     @Pattern(regexp = Utils.EMAIL_REGEX, message = "'email' does not match pattern") // includes "notBlank"
     @Schema(example = "max.mustermann@domain.com")
+    @EqualsAndHashCode.Include
     private String email;
 
     /** Unique, immutable id of an oauth2 user */
@@ -161,7 +164,6 @@ public class AppUser extends AbstractEntity implements UserDetails, NeedsDeletio
      * @throws IllegalArgumentException
      */
     public AppUser copyOauth2Fields(AppUser oauth2AppUser) throws IllegalArgumentException {
-
         assertArgsNotNullAndNotBlankOrThrow(oauth2AppUser);
 
         this.email = oauth2AppUser.getEmail();

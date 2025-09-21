@@ -27,8 +27,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -47,6 +49,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -105,6 +108,12 @@ public class Utils {
 
     private static final String AES_ALGORITHM_NAME = "AES/CBC/PKCS5Padding";
 
+    /** The length a search word needs to of in order for the approximate match to use {@code contains} instead of {@code startsWith} */
+    public static final int SEARCH_WORD_MIN_LENGTH_FOR_CONTAINS = 5;
+    public static final int SEARCH_APPROXIMATE_RATING_POINTS = 1;
+    public static final int SEARCH_EXACT_MATCH_RATING_POINTS = 2;
+    public static final int SEARCH_ADJACENT_MATCH_RATING_POINTS = 1;
+
 
     /**
      * Convert file into String using {@link BufferedReader}.
@@ -139,8 +148,7 @@ public class Utils {
      * @throws IllegalArgumentException
      */
     public static String fileToString(InputStream is) throws IllegalArgumentException {
-
-        assertArgsNotNullAndNotBlank(is);
+        assertArgsNotNullAndNotBlankOrThrow(is);
 
         try (Scanner scanner = new Scanner(is)) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -216,7 +224,6 @@ public class Utils {
      * @see {@link #PASSWORD_REGEX}
      */
     public static boolean isPasswordValid(String password) {
-
         if (isBlank(password))
             return false;
 
@@ -260,8 +267,7 @@ public class Utils {
      * @throws FileNotFoundException 
      */
     public static File byteArrayToFile(byte[] bytes, String fileName) throws FileNotFoundException, IOException {
-
-        if (!assertArgsNotNullAndNotBlank(bytes, fileName)) 
+        if (assertArgsNullOrBlank(bytes, fileName)) 
             return null;
         
         try (OutputStream fos = new FileOutputStream(fileName)) {
@@ -364,11 +370,13 @@ public class Utils {
     }
 
 
-    public static boolean isBlank(String str) {
-
+    public static boolean isBlank(@Nullable String str) {
         return str == null || str.isBlank();
     }
 
+    public static boolean isEmpty(@Nullable String str) {
+        return str == null || str.isEmpty();
+    }
 
     /**
      * Default format for a {@link LocalDateTime} with pattern {@code DEFAULT_DATE_TIME_FORMAT + " Z"}.
@@ -432,7 +440,6 @@ public class Utils {
      * @throws IllegalArgumentException
      */
     public static void assertArgsNotNullAndNotBlankOrThrow(Object ...args) throws IllegalArgumentException {
-
         if (args == null)
             return;
 
@@ -444,18 +451,17 @@ public class Utils {
 
     /**
      * @param args to check
-     * @return {@code false} if at least one arg is {@code null} or blank (will stop iterating), else {@code true}
+     * @return {@code true} if at least one arg is {@code null} or blank (will stop iterating), else {@code false}
      */
-    public static boolean assertArgsNotNullAndNotBlank(Object ...args) throws IllegalArgumentException {
-
+    public static boolean assertArgsNullOrBlank(Object ...args) throws IllegalArgumentException {
         if (args == null)
             return true;
 
         for (int i = 0; i < args.length; i++) 
             if (assertNullOrBlank(args[i]))
-                return false;
+                return true;
 
-        return true;
+        return false;
     }
 
 
@@ -475,7 +481,6 @@ public class Utils {
      * @return {@code true} if given {@code obj} is either {@code null} or (if instance of String) {@link #isBlank(String)}, else {@code false}
      */
     public static boolean assertNullOrBlank(Object obj) {
-
         if (obj == null)
             return true;
 
@@ -515,7 +520,6 @@ public class Utils {
      * @throws IllegalArgumentException
      */
     public static void writeToResponse(HttpServletResponse response, HttpStatus status, String message, boolean doLog) throws JsonProcessingException, IOException, IllegalArgumentException {
-
         writeToResponse(response, new CustomExceptionFormat(status.value(), message));
         response.setStatus(status.value());
 
@@ -744,5 +748,41 @@ public class Utils {
         }
         
         return hexString.toString();
+    }
+
+    /**
+     * Get a sublist starting at {@code pageIndex * pageSize}.
+     * 
+     * @param <T>
+     * @param list
+     * @param pageIndex 0-based, determines the start index. Cannot be negative
+     * @param pageSize max length of returned list. Cannot be negative
+     * @return a sublist of {@code list}. An empty list if {@code pageIndex} is out of bounds
+     * @throws IllegalArgumentException
+     */
+    @NonNull
+    public static<T> List<T> paginate(@NonNull List<T> list, int pageIndex, int pageSize) throws IllegalArgumentException {
+        assertArgsNotNullAndNotBlankOrThrow(list);
+
+        if (pageIndex < 0)
+            throw new IllegalArgumentException("'pageIndex' must be greater equal 0");
+        if (pageSize < 0)
+            throw new IllegalArgumentException("'pageSize' must be greater equal 0");
+
+        if (list.isEmpty() || pageSize == 0)
+            return new ArrayList<>();
+
+        int startIndex = pageIndex * pageSize;
+        int endIndex = startIndex + pageSize;
+
+        // case: pageIndex out of bounds
+        if (list.size() < startIndex)
+            return new ArrayList<>();
+
+        // case: endIndex out of bounds
+        if (list.size() < endIndex)
+            endIndex = list.size();
+
+        return list.subList(startIndex, endIndex);
     }
 }

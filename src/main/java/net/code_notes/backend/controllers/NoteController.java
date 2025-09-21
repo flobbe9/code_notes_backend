@@ -1,8 +1,10 @@
 package net.code_notes.backend.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +23,6 @@ import net.code_notes.backend.services.NoteService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-
 /**
  * @since 0.0.1
  */
@@ -31,8 +32,12 @@ public class NoteController {
 
     @Autowired
     private NoteService noteService;
-
     
+    /**
+     * 
+     * @return
+     * @deprecated in favor of {@code /get-by-app_user-pageable} which supports pageable and search queries 
+     */
     @GetMapping("/get-all-by-appUser")
     @Operation(
         description = "Gets all notes related to app user currently logged in. Uses default order 'created' - 'descending'. AuthRequirements: LOGGED_IN",
@@ -41,27 +46,32 @@ public class NoteController {
             @ApiResponse(responseCode = "401", description = "Not logged in")
         }
     )
+    @Deprecated(since = "1.0.0", forRemoval = true)
     public Flux<Note> getAllByAppUser() {
-
         return Flux.fromIterable(this.noteService.getAllByCurrentAppUser());
     }
     
-    
     @GetMapping("/get-by-app_user-pageable")
     @Operation(
-        description = "Gets a page of notes related to app user currently logged in. Uses default order 'created' - 'descending'. AuthRequirements: LOGGED_IN",
+        description = """
+            Gets a page of notes related to app user currently logged in. \n
+            Accepts optional params for tag filtering and user search input. \n
+            Sorts by search result match and 'note.created' descending.\n
+            AuthRequirements: LOGGED_IN
+        """,
         responses = {
             @ApiResponse(responseCode = "200", description = "Got a logged in app user and returned their notes (may be empty)."),
             @ApiResponse(responseCode = "401", description = "Not logged in")
         }
     )
-    public Flux<Note> getByAppUserPageable(@RequestParam @Min(0) int pageNumber, @RequestParam @Min(1) int pageSize) {
-
-        // read them params
-
-        return Flux.fromIterable(this.noteService.getByCurrentAppUserOrderByCreatedDescPageable(pageNumber, pageSize));
+    public Flux<Note> getByAppUserPageable(
+        @RequestParam @Min(0) int pageNumber, 
+        @RequestParam @Min(1) int pageSize,
+        @RequestParam Optional<String> searchPhrase,
+        @RequestParam Optional<List<String>> tagNames
+    ) {
+        return Flux.fromIterable(this.noteService.loadByCurrentAppUserSortedAndSearch(PageRequest.of(pageNumber, pageSize), searchPhrase.orElse(null), tagNames.orElse(null)));
     }
-
 
     @GetMapping("/count-by-app_user")
     @Operation(
@@ -72,10 +82,8 @@ public class NoteController {
         }
     )
     public Mono<Long> countAll() {
-
         return Mono.just(this.noteService.countByCurrentAppUser());
     }
-
 
     @PostMapping("/save")
     @Operation(
@@ -89,10 +97,8 @@ public class NoteController {
         }
     )
     public Mono<Note> save(@RequestBody @Valid Note note) {
-
         return Mono.just(this.noteService.save(note));
     }
-
 
     @PostMapping("/save-all")
     @Operation(
@@ -106,12 +112,9 @@ public class NoteController {
         }
     )
     public Flux<Note> saveAll(@RequestBody List<@Valid Note> notes) throws IllegalArgumentException, ResponseStatusException {
-
         return Flux.fromIterable(this.noteService.saveAll(notes));
     }
 
-
-    
     @DeleteMapping("/delete")
     @Operation(
         description = "Delete note. Will delete orphan tags as well. AuthRequirements: LOGGED_IN",
@@ -122,7 +125,6 @@ public class NoteController {
         }
     )
     public void delete(@RequestParam Long id) {
-
         this.noteService.delete(id);
     }
 }
