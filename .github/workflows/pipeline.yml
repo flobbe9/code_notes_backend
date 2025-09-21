@@ -22,6 +22,8 @@ jobs:
           java-version: '17'
       - name: Start db for build context
         run: docker compose -f 'docker-compose.dev.yml' up db -d   
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
       - name: Build and test with informative logs (-i)
         run: ./gradlew clean build -i
   
