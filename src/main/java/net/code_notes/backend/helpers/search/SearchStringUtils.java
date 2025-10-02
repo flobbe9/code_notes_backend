@@ -30,7 +30,7 @@ import net.code_notes.backend.abstracts.AbstractSearchStringMatchRating;
  * <b>compareWord / comparePhrase:</b> One of possibly many strings the searchWord/-phrase is beeing compared to, e.g. a note title
  * <b>result: </b> A compareWord/-phrase that had at least one match and should be returned by the search function
  * 
- * @since latest
+ * @since 1.0.0
  */
 public abstract class SearchStringUtils {
 

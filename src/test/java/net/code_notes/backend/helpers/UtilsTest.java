@@ -10,7 +10,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * @since latest
+ * @since 1.0.0
  */
 public class UtilsTest {
     

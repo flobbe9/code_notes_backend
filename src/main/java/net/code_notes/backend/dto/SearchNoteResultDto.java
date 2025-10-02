@@ -10,7 +10,7 @@ import net.code_notes.backend.entities.Note;
 /**
  * Expected response object when returning note search results.
  * 
- * @since latest
+ * @since 1.0.0
  */
 @Getter
 @Setter

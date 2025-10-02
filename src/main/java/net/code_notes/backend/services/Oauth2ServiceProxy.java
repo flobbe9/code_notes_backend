@@ -12,7 +12,7 @@ import lombok.Setter;
 /**
  * Proxy for {@code Oauth2Service} in order to use session scoped variables. 
  * 
- * @since latest
+ * @since 1.0.0
  */
 @Service
 @SessionScope

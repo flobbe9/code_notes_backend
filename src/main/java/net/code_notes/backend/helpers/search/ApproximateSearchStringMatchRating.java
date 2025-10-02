@@ -4,7 +4,7 @@ import net.code_notes.backend.abstracts.AbstractSearchStringMatchRating;
 import net.code_notes.backend.helpers.Utils;
 
 /**
- * @since latest
+ * @since 1.0.0
  */
 public class ApproximateSearchStringMatchRating extends AbstractSearchStringMatchRating {
 

@@ -10,7 +10,7 @@ import net.code_notes.backend.abstracts.AbstractSearchStringMatchRating;
 /**
  * Contains details about two strings matching for search.
  *  
- * @since latest
+ * @since 1.0.0
  * @see {@link SearchUtils}
  */
 @Getter

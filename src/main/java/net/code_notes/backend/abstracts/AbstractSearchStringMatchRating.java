@@ -9,7 +9,7 @@ import net.code_notes.backend.helpers.search.SearchStringUtils;
 /**
  * Contains details about the priority of a search string match.
  * 
- * @since latest
+ * @since 1.0.0
  * @see {@link SearchStringUtils}
  */
 @Getter

@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 /**
- * @since latest
+ * @since 1.0.0
  */
 public class SearchStringUtilsTest {
 

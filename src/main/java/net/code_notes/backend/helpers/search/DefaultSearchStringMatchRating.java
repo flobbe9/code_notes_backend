@@ -6,7 +6,7 @@ import net.code_notes.backend.abstracts.AbstractSearchStringMatchRating;
  * Unspecific default implementation of {@code AbstractSearchStringMatchRating} simply adding the 
  * rating points to the total.
  * 
- * @since latest
+ * @since 1.0.0
  */
 public class DefaultSearchStringMatchRating extends AbstractSearchStringMatchRating {
 
