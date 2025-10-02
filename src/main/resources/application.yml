@@ -64,7 +64,7 @@ spring:
                         
     ### DB
     datasource:
-        url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+        url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
         # h2
         # url: jdbc:h2:mem:cidb
         username: ${DB_USER}
@@ -105,5 +105,3 @@ logging:
             code_notes: ${LOG_LEVEL}
     file:
         path: ${LOG_FILE_PATH}
-
-ci: false
