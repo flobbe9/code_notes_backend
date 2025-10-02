@@ -41,6 +41,8 @@ public class CodeNotesBackendApplication {
             "./.env.secrets"
         );
 
+        log.info("-Xmx={}m", Math.round((Runtime.getRuntime().maxMemory() / Math.pow(1024, 2)) * 100) / 100); // in MB, 2 fractions
+
 		SpringApplication.run(CodeNotesBackendApplication.class, args);
 	}
 
