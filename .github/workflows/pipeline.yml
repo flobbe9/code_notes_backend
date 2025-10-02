@@ -83,16 +83,6 @@ jobs:
                   config_file: .github/workflows/config.ovpn
                   client_key: ${{ secrets.OPEN_VPN_PRIVATE_KEY }}
 
-            - name: Copy some files to remote first
-              uses: appleboy/scp-action@v0.1.7
-              with:
-                  host: ${{ vars.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER_NAME }}
-                  password: ${{ secrets.SSH_PASSWORD }}
-                  source: writeToEnvFile.sh
-                  target: ./${{ vars.SSH_TARGET_FOLDER }}
-                  debug: true
-
             - name: Move .env vars to pipeline env
               run: |
                   echo $(cat .env | grep '^PORT=.*$') >> $GITHUB_ENV
