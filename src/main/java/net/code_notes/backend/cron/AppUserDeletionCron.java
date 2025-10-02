@@ -25,7 +25,7 @@ public class AppUserDeletionCron {
 
     @Autowired
     private AppUserRepository appUserRepository;
-
+    
     @Autowired
     private AppUserService appUserService;
 

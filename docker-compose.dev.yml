@@ -1,7 +1,7 @@
 services:
   # NOTE: used in pipeline, volumes don't work in pipeline
   db:
-    image: mysql:${DB_VERSION}
+    image: mariadb:${DB_VERSION}
     container_name: dev_db
     ports:
         - ${DB_PORT}:${DB_PORT}
@@ -12,11 +12,13 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       TZ: ${TZ}
     healthcheck:
-      test: mysqladmin ping -h db
+      test: mariadb-admin ping
       start_period: 10s
       interval: 5s
       timeout: 5s
       retries: 10
+    volumes:
+      - ./volumes/db/:/var/lib/mysql/
     
   backend:
     depends_on: 
@@ -28,6 +30,7 @@ services:
       args:
         API_NAME: ${API_NAME}
         VERSION: 'SNAPSHOT'
+        RUNTIME_ARGS: ${RUNTIME_ARGS}
     container_name: backend
     ports: 
       - ${PORT}:${PORT}
