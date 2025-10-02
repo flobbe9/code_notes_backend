@@ -20,6 +20,8 @@ COPY ./build.gradle \
 # -i: case-sensitive, s: first occurrence
 RUN sed -i 's/VERSION/'${VERSION}'/' ./build.gradle
 
+# make gradle wrapper executable
+RUN chmod +x ./gradlew
 RUN ./gradlew clean build
 
 
