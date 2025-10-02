@@ -37,11 +37,11 @@ public class CodeNotesBackendApplication {
 	public static void main(String[] args) {
         readEnvFiles(
             "./.env.version", 
-            "./.env.secrets.pipeline",
+            "./.env.pipeline",
             "./.env.secrets"
         );
 
-        log.info("-Xmx={}m", Math.round((Runtime.getRuntime().maxMemory() / Math.pow(1024, 2)) * 100) / 100); // in MB, 2 fractions
+        log.info("-Xmx={}m", Math.round((Runtime.getRuntime().maxMemory() / Math.pow(1024, 2)) * 100.0) / 100.0); // in MB, 2 fractions
 
 		SpringApplication.run(CodeNotesBackendApplication.class, args);
 	}
@@ -61,8 +61,7 @@ public class CodeNotesBackendApplication {
 
 
     /**
-     * Read other .env files and set key values as sys properties. Arg env files will override each other but
-     * never the values in the actual .env file.<p>
+     * Read other .env files and set key values as sys properties. Arg env files will override each other (including the .env file).<p>
      * 
      * Wont throw if an arg is blank.
      * 

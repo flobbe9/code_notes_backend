@@ -1,13 +1,18 @@
-FROM gradle:8.8-jdk17
+ARG VERSION
+
+FROM eclipse-temurin:21-jdk-alpine-3.22
 
 WORKDIR /app
 
 ARG VERSION
-ARG GRADLE_BUILD_ARGS
 
 COPY ./src ./src
+COPY ./gradle ./gradle 
 COPY ./build.gradle \
      ./settings.gradle \
+     ./gradle ./gradle \
+     ./gradlew \
+     ./gradlew.bat \
      ./.env \
      ./.env.* \
      ./
@@ -15,26 +20,24 @@ COPY ./build.gradle \
 # -i: case-sensitive, s: first occurrence
 RUN sed -i 's/VERSION/'${VERSION}'/' ./build.gradle
 
-# for some reason tests don't work in docker container
-RUN gradle clean build ${GRADLE_BUILD_ARGS} -x test
+RUN ./gradlew clean build
 
 
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:21-jdk-alpine-3.22
 
 WORKDIR /app
 
 ARG VERSION
 ARG API_NAME
 ENV JAR_FILE_NAME=${API_NAME}-${VERSION}.jar
-ARG DB_HOST
-ENV DB_HOST=${DB_HOST}
 ARG RUNTIME_ARGS=''
 ENV RUNTIME_ARGS=${RUNTIME_ARGS}
 
 COPY --from=0 /app/build/libs/${JAR_FILE_NAME} ./${JAR_FILE_NAME}
-# NOTE: don't include .env.secrets.pipeline here since it would take precedence over docker-compose environment
+# NOTE: don't include .env.pipeline here since it would take precedence over docker-compose environment
 COPY ./.env \
      ./.env.version \
+     # just for local development
      ./.env.secret[s] \
      ./
 

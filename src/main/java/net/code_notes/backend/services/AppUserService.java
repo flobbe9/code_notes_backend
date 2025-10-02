@@ -161,13 +161,13 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         DefaultOAuth2User oauthUser = ((DefaultOAuth2User) principal);
                 
         // case: github email has been cached
-        if (this.oauth2Service.getCurrentPrimaryGithubEmailUserInfo() != null)
-            return AppUser.getInstanceByGithubUser(oauthUser, this.oauth2Service.getCurrentPrimaryGithubEmailUserInfo());
+        if (this.oauth2Service.getOauth2ServiceProxy().getCurrentPrimaryGithubEmailUserInfo() != null)
+            return AppUser.getInstanceByGithubUser(oauthUser, this.oauth2Service.getOauth2ServiceProxy().getCurrentPrimaryGithubEmailUserInfo());
         
         Map<String, Object> primaryGithubEmailUserInfo = this.oauth2Service.fetchPrimaryGithubEmailUserInfo();
 
         // cache email user info
-        this.oauth2Service.setCurrentPrimaryGithubEmailUserInfo(primaryGithubEmailUserInfo);
+        this.oauth2Service.getOauth2ServiceProxy().setCurrentPrimaryGithubEmailUserInfo(primaryGithubEmailUserInfo);
 
         return AppUser.getInstanceByGithubUser(oauthUser, primaryGithubEmailUserInfo);
     }

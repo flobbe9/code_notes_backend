@@ -785,4 +785,30 @@ public class Utils {
 
         return list.subList(startIndex, endIndex);
     }
+
+    /**
+     * Basically {@code System.getenv()} but with default value that will be returned if {@code key} or {@code System.getenv(key)} are {@code null}.
+     * 
+     * @param key
+     * @param defaultValue
+     * @return
+     */
+    public static String getenv(String key, String defaultValue) {
+        if (key == null)
+            return defaultValue;
+
+        String value = System.getenv(key);
+
+        return value == null ? defaultValue : value;
+    }
+
+    /**
+     * Ci indicates that the app is running inside a pipeline or similar. Expect "CI" variable to be defined
+     * either as application.property or inside an .env file different then the main ".env".
+     * 
+     * @return {@code true} or {@code false} (default)
+     */
+    public static boolean isCI() {
+        return System.getProperty("CI", "false").equals("true");
+    }
 }
