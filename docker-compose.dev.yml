@@ -12,7 +12,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       TZ: ${TZ}
     healthcheck:
-      test: mariadb-admin ping
+      test: mariadb-admin ping -u root -p${DB_ROOT_PASSWORD}
       start_period: 10s
       interval: 5s
       timeout: 5s

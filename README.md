@@ -19,6 +19,3 @@ OAUTH2_CLIENT_SECRET_AZURE=
 OAUTH2_TENANT_ID_AZURE=
 OAUTH2_ISSUER_URI_AZURE=
 ```
-
-### Note
-- values from .env.secrets wont override .env values

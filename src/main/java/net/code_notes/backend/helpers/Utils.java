@@ -811,4 +811,10 @@ public class Utils {
     public static boolean isCI() {
         return System.getProperty("CI", "false").equals("true");
     }
+
+    public static void logHeapSpaceInfo() {
+        log.info("-Xmx: {}m", Math.round((Runtime.getRuntime().maxMemory() / Math.pow(1024, 2)) * 100.0) / 100.0); // in MB, 2 fractions
+        log.info("Java heap space actual: {}m", Math.round((Runtime.getRuntime().totalMemory() / Math.pow(1024, 2)) * 100.0) / 100.0); // in MB, 2 fractions
+        log.info("Java heap space currently used: {}m", Math.round(((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Math.pow(1024, 2)) * 100.0) / 100.0); // in MB, 2 fractions
+    }
 }

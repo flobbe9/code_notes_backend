@@ -57,6 +57,8 @@ jobs:
             - name: Build and push
               uses: docker/build-push-action@v6.10.0
               with:
+                  # explicitly specify context in order for .dockerignore to be considered
+                  context: .
                   push: true
                   tags: |
                       ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:latest
@@ -78,20 +80,10 @@ jobs:
                   sudo apt update
                   sudo apt install -y openvpn openvpn-systemd-resolved
             - name: Connect to VPN
-              uses: "kota65535/github-openvpn-connect-action@v3"
+              uses: kota65535/github-openvpn-connect-action@v3
               with:
                   config_file: .github/workflows/config.ovpn
                   client_key: ${{ secrets.OPEN_VPN_PRIVATE_KEY }}
-
-            # - name: Copy some files to remote first
-            #   uses: appleboy/scp-action@v0.1.7
-            #   with:
-            #       host: ${{ vars.SSH_HOST }}
-            #       username: ${{ secrets.SSH_USER_NAME }}
-            #       password: ${{ secrets.SSH_PASSWORD }}
-            #       source: writeToEnvFile.sh
-            #       target: ./${{ vars.SSH_TARGET_FOLDER }}
-            #       debug: true
 
             - name: Move .env vars to pipeline env
               run: |
