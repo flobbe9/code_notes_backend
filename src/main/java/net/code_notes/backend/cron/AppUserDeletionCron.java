@@ -33,7 +33,7 @@ public class AppUserDeletionCron {
     private DeletedEntityRecordService deletedEntityRecordService;
 
     
-    @Scheduled(cron = "0 0 2 * * ?") // at 02:00 every day
+    // @Scheduled(cron = "0 0 2 * * ?") // at 02:00 every day
     // @Scheduled(cron = "*/5 * * * * ?") // every 5 seconds
     void deleteDisabled() {
         log.info("Deleting disabled app users older than %d days...".formatted(DAYS_BEFORE_DELETION));

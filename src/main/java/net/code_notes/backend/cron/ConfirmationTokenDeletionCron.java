@@ -23,7 +23,7 @@ public class ConfirmationTokenDeletionCron {
 
     // TODO: continue here, test if repo method or any service method causes this
     // @Scheduled(cron = "0 0 2 * * ?") // at 02:00 every day
-    @Scheduled(cron = "*/5 * * * * ?") // every 5 seconds
+    // @Scheduled(cron = "*/5 * * * * ?") // every 5 seconds
     public void deleteOlderThan() {
         log.info("Deleting old confirmation tokens...");
 
