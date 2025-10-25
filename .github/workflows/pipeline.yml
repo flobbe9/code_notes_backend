@@ -23,7 +23,7 @@ jobs:
             - name: Make gradle wrapper executable
               run: chmod +x ./gradlew
             - name: Build and test
-              run: ./gradlew clean build
+              run: ./gradlew clean build -Pci
 
     # prod
     push_to_Dockerhub:
