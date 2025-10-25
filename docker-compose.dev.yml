@@ -28,8 +28,6 @@ services:
     build:
       context: .
       args:
-        API_NAME: ${API_NAME}
-        VERSION: 'SNAPSHOT'
         JAVA_RUNTIME_ARGS: ${JAVA_RUNTIME_ARGS}
     container_name: backend
     ports: 

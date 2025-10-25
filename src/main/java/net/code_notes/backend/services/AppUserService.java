@@ -761,7 +761,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * Should be called once on application start up.
      */
     public void registerDefaultAdminUser() {
-
         AppUser existingAdmin = loadByEmail(this.DEFAULT_ADMIN_EMAIL);
 
         if (existingAdmin == null) {
