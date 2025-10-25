@@ -14,9 +14,9 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4.2.2
+              uses: actions/checkout@v5
             - name: Setup JDK
-              uses: actions/setup-java@v4.6.0
+              uses: actions/setup-java@v5
               with:
                   distribution: "temurin"
                   java-version: "21"
@@ -34,28 +34,27 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4.2.2
+              uses: actions/checkout@v5
 
             - name: move .env vars to pipeline
               run: |
                   echo $(cat .env.version | grep '^VERSION=.*$') >> $GITHUB_ENV
-                  echo $(cat .env | grep '^API_NAME=.*$') >> $GITHUB_ENV
               shell: bash
 
             - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+              uses: docker/setup-qemu-action@v3.6.0
 
             - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+              uses: docker/setup-buildx-action@v3.11.1
 
             - name: Login to Docker Hub
-              uses: docker/login-action@v3
+              uses: docker/login-action@v3.6.0
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build and push
-              uses: docker/build-push-action@v6.10.0
+              uses: docker/build-push-action@v6.18.0
               with:
                   # explicitly specify context in order for .dockerignore to be considered
                   context: .
@@ -63,9 +62,6 @@ jobs:
                   tags: |
                       ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:latest
                       ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:${{env.VERSION}}
-                  build-args: |
-                      VERSION=${{env.VERSION}}
-                      API_NAME=${{env.API_NAME}}
 
     deploy_to_server:
         runs-on: ubuntu-latest
@@ -73,7 +69,7 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4.2.2
+              uses: actions/checkout@v5
 
             - name: Install OpenVPN
               run: |
@@ -93,7 +89,7 @@ jobs:
               shell: bash
 
             - name: Write env to server .env file, then pull, rerun and clean up
-              uses: appleboy/ssh-action@v1.2.0
+              uses: appleboy/ssh-action@v1.2.2
               with:
                   host: ${{ vars.SSH_HOST }}
                   username: ${{ secrets.SSH_USER_NAME }}
