@@ -35,13 +35,12 @@ public class CodeNotesBackendApplication {
      * @param args
      */
 	public static void main(String[] args) {
-        readEnvFiles("./.env.local");
-
+        readEnvFiles("./.env.local", "./.env.version");
+        
+        log.info("App version {}", System.getProperty("VERSION"));
         log.info("-Xmx={}m", Math.round((Runtime.getRuntime().maxMemory() / Math.pow(1024, 2)) * 100.0) / 100.0); // in MB, 2 fractions
 
 		SpringApplication.run(CodeNotesBackendApplication.class, args);
-        
-        log.info("App version {}", System.getProperty("custom.app-version"));
 	}
 
 

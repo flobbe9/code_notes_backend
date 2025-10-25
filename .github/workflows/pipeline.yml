@@ -15,17 +15,15 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v5
-            - name: test
-              run: echo $(cat src/main/resources/application.yml | grep '^app-version:\ .*$')
-            # - name: Setup JDK
-            #   uses: actions/setup-java@v5
-            #   with:
-            #       distribution: "temurin"
-            #       java-version: "21"
-            # - name: Make gradle wrapper executable
-            #   run: chmod +x ./gradlew
-            # - name: Build and test
-            #   run: ./gradlew clean build -Pci
+            - name: Setup JDK
+              uses: actions/setup-java@v5
+              with:
+                  distribution: "temurin"
+                  java-version: "21"
+            - name: Make gradle wrapper executable
+              run: chmod +x ./gradlew
+            - name: Build and test
+              run: ./gradlew clean build -Pci
 
     # prod
     push_to_Dockerhub:
@@ -40,7 +38,7 @@ jobs:
 
             - name: move .env vars to pipeline
               run: |
-                  echo $(cat src/main/resources/application.yml | grep '^app-version: .*$') >> $GITHUB_ENV
+                  echo $(cat .env.version | grep '^VERSION=*$') >> $GITHUB_ENV
               shell: bash
 
             - name: Set up QEMU
