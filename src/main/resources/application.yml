@@ -105,7 +105,7 @@ spring:
                         private-key: "classpath:ssl/privkey.pem"
 
 custom:
-    app-version: 1.0.2
+    app-version: 1.0.2 
 
 logging:
     level:
