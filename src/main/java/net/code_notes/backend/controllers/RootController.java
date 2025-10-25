@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RootController {
 
-    @Value("${custom.app-version}")
+    @Value("${VERSION}")
     private String VERSION;
 
     

@@ -38,7 +38,7 @@ jobs:
 
             - name: move .env vars to pipeline
               run: |
-                  echo $(cat .env.version | grep '^VERSION=.*$') >> $GITHUB_ENV
+                  echo $(cat .env.version | grep '^VERSION=*$') >> $GITHUB_ENV
               shell: bash
 
             - name: Set up QEMU
