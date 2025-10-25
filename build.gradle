@@ -41,14 +41,15 @@ dependencies {
     // remove warning caused by @Nullable
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2' 
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-    // for ci testing
-	runtimeOnly 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
+
     testCompileOnly 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // for ci testing
+	testRuntimeOnly 'com.h2database:h2'
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
@@ -61,4 +62,14 @@ test {
     testLogging {
         showStandardStreams = true
     }
+
+    // use arg "-Pci"
+    if (project.hasProperty("ci"))
+        systemProperty 'CI', 'true';
+}
+
+bootRun {
+    // e.g. ./gradlew bootRun -PjavaRuntimeArgs="-Xmx1g -Xms256m"
+    if (project.hasProperty('javaRuntimeArgs') && project.javaRuntimeArgs.trim() != '')
+        jvmArgs = (project.javaRuntimeArgs.split("\\s+") as List)
 }
