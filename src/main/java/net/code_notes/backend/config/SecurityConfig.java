@@ -42,7 +42,7 @@ public class SecurityConfig {
     /**
      * Possible values:<p>
      * 
-     * - {@code production}: login required, no develpment endpoints like swagger permitted, csrf enabled, .env.secrets not used<p>
+     * - {@code production}: login required, no develpment endpoints like swagger permitted, csrf enabled, .env.local not used<p>
      * - {@code qa}: login required, no develpment endpoints like swagger permitted, csrf enabled <p>
      * - {@code development}: no login required, all development endpoints like swagger permitted, csrf disabled
      */

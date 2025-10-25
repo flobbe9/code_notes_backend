@@ -10,7 +10,6 @@ bin/
 !README.md
 .vscode/
 .env.local
-.env.secrets
 notes.md
 test.*
 data.sql

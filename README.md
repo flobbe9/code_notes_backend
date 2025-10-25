@@ -3,7 +3,7 @@
 
 
 ## Using Oauth2 locally
-- create an .env.secrets file at the project root (same level as /src)
+- create an .env.local file at the project root (same level as /src)
 - use these keys:
 ```
 OAUTH2_CLIENT_ID_GOOGLE=

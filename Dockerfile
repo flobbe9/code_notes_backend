@@ -13,9 +13,7 @@ COPY ./build.gradle \
      ./gradlew \
      ./gradlew.bat \
      ./.env \
-     ./.env.version \
-     # just for local development
-     ./.env.secret[s] \
+     ./.env.local[l] \
      ./
 
 # make gradle wrapper executable
