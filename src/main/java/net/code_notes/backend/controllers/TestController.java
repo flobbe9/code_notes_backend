@@ -10,7 +10,8 @@ import org.springframework.web.context.annotation.RequestScope;
 import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.repositories.NoteRepository;
 import net.code_notes.backend.services.AppUserService;
-import net.code_notes.backend.services.TestService;
+
+// import org.apache.log4j.Layout;
 
 
 @RestController
@@ -25,16 +26,13 @@ public class TestController {
     @Autowired
     private AppUserService appUserService;
 
-    @Autowired
-    private TestService testService;
-
     private String cached;
 
     
     @GetMapping("/set")
     public void set(@RequestParam String cached) {
-        this.cached = cached;
-        this.testService.setCached(cached); 
+        // this.cached = cached;
+        // this.testService.setCached(cached); 
     }
 
         

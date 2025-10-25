@@ -8,10 +8,7 @@ server:
 
     ### SSL
     ssl:
-        key-store-type: ${SSL_KEY_STORE_TYPE}
-        key-store: ${SSL_KEY_STORE}
-        key-store-password: ${SSL_KEY_STORE_PASSWORD}
-        key-alias: ${SSL_KEY_ALIAS}
+        bundle: "server"
         enabled: ${SSL_ENABLED}
 
 spring:
@@ -98,6 +95,15 @@ spring:
                     auth: ${SMTP_AUTH_ENABLE}
                     starttls:
                         enable: ${MAIL_STARTTLS_ENABLE}
+    ### SSL
+    ssl:
+        bundle:
+            pem:
+                server: # the "server.ss.bundle" value
+                    keystore:
+                        certificate: "classpath:ssl/fullchain.pem"
+                        private-key: "classpath:ssl/privkey.pem"
+
 
 logging:
     level:
