@@ -13,6 +13,7 @@ COPY ./build.gradle \
      ./gradlew \
      ./gradlew.bat \
      ./.env \
+     ./.env.version \
      ./.env.local[l] \
      ./
 
