@@ -115,6 +115,7 @@ jobs:
                         DB_ROOT_PASSWORD='${{secrets.DB_ROOT_PASSWORD}}' \
                         DB_PORT='${{env.DB_PORT}}' \
                         DB_VERSION='${{env.DB_VERSION}}' \
+                        JAVA_RUNTIME_ARGS='${{env.JAVA_RUNTIME_ARGS}}' \
                         DOCKERHUB_USER='${{secrets.DOCKERHUB_USERNAME}}'
 
                       docker compose -f './${{ vars.SSH_TARGET_FOLDER }}/docker-compose.yml' pull backend
