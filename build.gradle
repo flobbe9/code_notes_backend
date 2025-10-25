@@ -70,6 +70,6 @@ test {
 
 bootRun {
     // e.g. ./gradlew bootRun -PjavaRuntimeArgs="-Xmx1g -Xms256m"
-    if (project.hasProperty('javaRuntimeArgs'))
+    if (project.hasProperty('javaRuntimeArgs') && project.javaRuntimeArgs.trim() != '')
         jvmArgs = (project.javaRuntimeArgs.split("\\s+") as List)
 }
