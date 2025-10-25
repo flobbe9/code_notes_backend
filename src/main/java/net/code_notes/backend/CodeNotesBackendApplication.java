@@ -68,7 +68,6 @@ public class CodeNotesBackendApplication {
      * @param envFileNames relative to root folder (same level as /src)
      */
     public static void readEnvFiles(@Nullable String ...envFileNames) {
-
         if (envFileNames == null || envFileNames.length == 0)
             return;
 
@@ -83,7 +82,6 @@ public class CodeNotesBackendApplication {
      * @param fileName relative to root folder (same level as /src)
      */
     public static void readEnvFile(@Nullable String fileName) {
-
         if (isBlank(fileName))
             return;
         

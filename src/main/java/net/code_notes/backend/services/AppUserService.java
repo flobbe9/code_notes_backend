@@ -735,7 +735,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @throws IOException
      */
     public void sendResetPasswordMail(String to) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, MessagingException, IOException {
-
         assertArgsNotNullAndNotBlankOrThrow(to);
 
         AppUser appUser = loadByEmail(to);
@@ -754,7 +753,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
         this.asyncService.sendResetPasswordMail(confirmationToken);
     }
     
-
     /**
      * Save or update the user with {@link #DEFAULT_ADMIN_EMAIL}. In any case enable the appUser, set {@code role} to {@code ADMIN} and password to {@link #DEFAULT_ADMIN_PASSWORD}. <p>
      * 
