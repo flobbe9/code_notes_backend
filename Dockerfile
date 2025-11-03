@@ -9,7 +9,6 @@ COPY ./src ./src
 COPY ./gradle ./gradle 
 COPY ./build.gradle \
      ./settings.gradle \
-     ./gradle ./gradle \
      ./gradlew \
      ./gradlew.bat \
      ./.env \

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.log4j.Log4j2;
@@ -32,7 +33,7 @@ public class AppUserDeletionCron {
     private DeletedEntityRecordService deletedEntityRecordService;
 
     
-    // @Scheduled(cron = "0 0 2 * * ?") // at 02:00 every day
+    @Scheduled(cron = "0 0 2 * * ?") // at 02:00 every day
     // @Scheduled(cron = "*/5 * * * * ?") // every 5 seconds
     void deleteDisabled() {
         log.info("Deleting disabled app users older than %d days...".formatted(DAYS_BEFORE_DELETION));
