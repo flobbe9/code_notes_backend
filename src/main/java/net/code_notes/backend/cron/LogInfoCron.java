@@ -10,8 +10,8 @@ import net.code_notes.backend.helpers.Utils;
 @Log4j2
 public class LogInfoCron {
         
+    @Scheduled(cron = "0 */30 * * * ?") // every 30 minutes
     // @Scheduled(cron = "*/5 * * * * ?") // every 5 seconds
-    // @Scheduled(cron = "0 */30 * * * ?") // every 30 minutes
     public void logInfo() {
         log.info("Logging infos:");
 
