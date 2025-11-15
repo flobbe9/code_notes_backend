@@ -41,7 +41,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
     private Oauth2Service oauth2Service;
 
-    @Value("${FRONTEND_BASE_URL}")
+    @Value("${GATEWAY_BASE_URL}")
     private String FRONTEND_BASE_URL;
 
 
@@ -53,7 +53,6 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-
         boolean isOauth2 = this.oauth2Service.isOauth2Session(authentication.getPrincipal());
 
         try {
