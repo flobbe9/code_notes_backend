@@ -43,7 +43,7 @@ public abstract class DeletedEntityRecordController {
         }
     )
     @Secured("ROLE_ADMIN")
-    public Mono<DeletedEntityRecord> getDeletionRecord(@RequestParam @NotBlank(message = "'uniqueId' cannot be blank") String uniqueId) {
+    public Mono<DeletedEntityRecord> getDeletionRecord(@RequestParam("uniqueId") @NotBlank(message = "'uniqueId' cannot be blank") String uniqueId) {
         
         return Mono.just(this.deletedEntityRecordService.loadByEntity(uniqueId, getDeletedEntityClassName()));
     }

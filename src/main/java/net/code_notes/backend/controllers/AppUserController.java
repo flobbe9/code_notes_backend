@@ -49,7 +49,7 @@ public class AppUserController extends DeletedEntityRecordController {
     /** The url query param key that is appended to the redirect url after requesting a reset-password mail externally. Also hard coded in "constatns.ts" */
     private static final String SEND_RESET_PASSWORD_MAIL_STATUS_PARAM = "send-reset-password-mail";
 
-    @Value("${FRONTEND_BASE_URL}")
+    @Value("${GATEWAY_BASE_URL}")
     private String FRONTEND_BASE_URL;
 
     @Autowired
@@ -93,8 +93,8 @@ public class AppUserController extends DeletedEntityRecordController {
         }
     )
     public void register(
-        @RequestParam @NotBlank(message = "'email' cannot be blank") String email, 
-        @RequestParam @NotBlank(message = "'password' cannot be blank") String password) throws ResponseStatusException, IllegalArgumentException, MessagingException, IllegalStateException, IOException {
+        @RequestParam("email") @NotBlank(message = "'email' cannot be blank") String email, 
+        @RequestParam("password") @NotBlank(message = "'password' cannot be blank") String password) throws ResponseStatusException, IllegalArgumentException, MessagingException, IllegalStateException, IOException {
         
         this.appUserService.register(email, password);
     }
@@ -111,7 +111,7 @@ public class AppUserController extends DeletedEntityRecordController {
             @ApiResponse(responseCode = "500", description = "Any other error"),
         }
     )
-    public void resendConfirmationMail(@RequestParam @NotBlank(message = "'email' cannot be blank") String email) throws IllegalArgumentException, ResponseStatusException, MessagingException, IllegalStateException, IOException {
+    public void resendConfirmationMail(@RequestParam("email") @NotBlank(message = "'email' cannot be blank") String email) throws IllegalArgumentException, ResponseStatusException, MessagingException, IllegalStateException, IOException {
 
         this.appUserService.resendAccountRegistrationConfirmationMail(email);
     }
@@ -132,7 +132,7 @@ public class AppUserController extends DeletedEntityRecordController {
             @ApiResponse(responseCode = "500", description = "Any other error"),
         }
     )
-    public void confirmAccount(@RequestParam Optional<String> token, HttpServletResponse response) throws IOException {
+    public void confirmAccount(@RequestParam("token") Optional<String> token, HttpServletResponse response) throws IOException {
 
         String redirectUrl = this.FRONTEND_BASE_URL + LOGIN_PATH;
 
@@ -233,7 +233,10 @@ public class AppUserController extends DeletedEntityRecordController {
             @ApiResponse(responseCode = "500", description = "Any other unexpected error")
         }
     )
-    public void resetPassword(@RequestParam @NotBlank(message = "'newPassword' cannot be blank") String newPassword, @RequestParam @NotBlank(message = "'oldPassword' cannot be blank") String oldPassword) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
+    public void resetPassword(
+        @RequestParam("newPassword") @NotBlank(message = "'newPassword' cannot be blank") String newPassword, 
+        @RequestParam("oldPassword") @NotBlank(message = "'oldPassword' cannot be blank") String oldPassword
+    ) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
 
         this.appUserService.resetPassword(newPassword, oldPassword);
     }
@@ -251,7 +254,10 @@ public class AppUserController extends DeletedEntityRecordController {
             @ApiResponse(responseCode = "500", description = "Any other unexpected error")
         }
     )
-    public void resetPasswordByToken(@RequestParam @NotBlank(message = "'newPassword' cannot be blank") String newPassword, @RequestParam @NotBlank(message = "'token' cannot be blank") String token) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
+    public void resetPasswordByToken(
+        @RequestParam("newPassword") @NotBlank(message = "'newPassword' cannot be blank") String newPassword, 
+        @RequestParam("token") @NotBlank(message = "'token' cannot be blank") String token
+    ) throws IllegalArgumentException, ResponseStatusException, IllegalStateException, IOException, MessagingException {
 
         this.appUserService.resetPasswordByToken(newPassword, token);
     }
@@ -273,7 +279,7 @@ public class AppUserController extends DeletedEntityRecordController {
             @ApiResponse(responseCode = "500", description = "Any other unexpected error")
         }
     )
-    public void sendResetPasswordMail(@RequestParam @NotBlank(message = "'to' cannot be blank") String to, @RequestParam Optional<String> redirectTo, HttpServletResponse response) throws Exception {
+    public void sendResetPasswordMail(@RequestParam("to") @NotBlank(message = "'to' cannot be blank") String to, @RequestParam("redirectTo") Optional<String> redirectTo, HttpServletResponse response) throws Exception {
 
         String redirectUrl = redirectTo.orElse("");
         Exception exception = null;
