@@ -36,7 +36,7 @@ import net.code_notes.backend.abstracts.AppUserRole;
 @Log4j2
 public class SecurityConfig {
 
-    @Value("${FRONTEND_BASE_URL}")
+    @Value("${GATEWAY_BASE_URL}")
     private String FRONTEND_BASE_URL;
 
     /**
@@ -63,7 +63,6 @@ public class SecurityConfig {
 
     @PostConstruct
     void init() {
-
         log.info("Configuring api security...");
     }
 
@@ -77,7 +76,6 @@ public class SecurityConfig {
      */
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        
         // case: development
         if (this.ENV.equalsIgnoreCase("development")) {
             http.csrf(csrf -> csrf.disable());
@@ -136,7 +134,6 @@ public class SecurityConfig {
      * @return the configured {@link CorsConfigurationSource}
      */
     private CorsConfigurationSource corsConfig() {
-
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(this.FRONTEND_BASE_URL));
         configuration.setAllowedMethods(List.of("GET", "POST", "UPDATE", "DELETE", "OPTIONS"));

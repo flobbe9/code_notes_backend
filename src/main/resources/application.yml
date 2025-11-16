@@ -4,12 +4,7 @@ server:
         include-message: always
     servlet:
         session:
-            timeout: 0
-
-    ### SSL
-    ssl:
-        bundle: "server"
-        enabled: ${SSL_ENABLED}
+            timeout: 86400 # 1 day
 
 spring:
     ### App
@@ -94,14 +89,6 @@ spring:
                     auth: ${SMTP_AUTH_ENABLE}
                     starttls:
                         enable: ${MAIL_STARTTLS_ENABLE}
-    ### SSL
-    ssl:
-        bundle:
-            pem:
-                server: # the "server.ss.bundle" value
-                    keystore:
-                        certificate: "classpath:ssl/fullchain.pem"
-                        private-key: "classpath:ssl/privkey.pem"
 
 logging:
     level:

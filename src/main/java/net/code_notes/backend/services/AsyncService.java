@@ -34,13 +34,13 @@ public class AsyncService {
     @Value("${BASE_URL}")
     private String BASE_URL;
 
-    @Value("${FRONTEND_BASE_URL}")
+    @Value("${GATEWAY_BASE_URL}")
     private String FRONTEND_BASE_URL;
     
-    @Value("${FRONTEND_BASE_URL}" + Utils.PRIVACY_POLICY_PATH)
+    @Value("${GATEWAY_BASE_URL}" + Utils.PRIVACY_POLICY_PATH)
     private String DATA_POLICY_URL;
     
-    @Value("${FRONTEND_BASE_URL}" + Utils.CONTACT_PATH)
+    @Value("${GATEWAY_BASE_URL}" + Utils.CONTACT_PATH)
     private String CONTACT_URL;
 
     @Value("classpath:mail/accountConfirmationMail.html")

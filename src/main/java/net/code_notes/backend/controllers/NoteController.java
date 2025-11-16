@@ -49,10 +49,10 @@ public class NoteController {
         }
     )
     public Mono<SearchNoteResultDto> getByAppUserPageable(
-        @RequestParam @Min(0) int pageNumber, 
-        @RequestParam @Min(1) int pageSize,
-        @RequestParam Optional<String> searchPhrase,
-        @RequestParam Optional<List<String>> tagNames
+        @RequestParam("pageNumber") @Min(0) int pageNumber, 
+        @RequestParam("pageSize") @Min(1) int pageSize,
+        @RequestParam("searchPhrase") Optional<String> searchPhrase,
+        @RequestParam("tagNames") Optional<List<String>> tagNames
     ) {
         return Mono.just(this.noteService.loadByCurrentAppUserSortedAndSearch(PageRequest.of(pageNumber, pageSize), searchPhrase.orElse(null), tagNames.orElse(null)));
     }
@@ -96,7 +96,7 @@ public class NoteController {
             @ApiResponse(responseCode = "403", description = "Invalid csrf"),
         }
     )
-    public void delete(@RequestParam Long id) {
+    public void delete(@RequestParam("id") Long id) {
         this.noteService.delete(id);
     }
 }
