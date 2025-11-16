@@ -4,7 +4,7 @@ server:
         include-message: always
     servlet:
         session:
-            timeout: 0
+            timeout: 86400 # 1 day
 
 spring:
     ### App
