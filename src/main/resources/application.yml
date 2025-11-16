@@ -28,16 +28,19 @@ spring:
                 # redirect-uri is the spring default: /login/oauth2/code/{clientRegistrationId}
                 registration:
                     google: 
+                        redirect-uri: ${BASE_URL}/login/oauth2/code/google
                         client-id: ${OAUTH2_CLIENT_ID_GOOGLE}
                         client-secret: ${OAUTH2_CLIENT_SECRET_GOOGLE}
                         scope: 
                             - email
                     github:
+                        redirect-uri: ${BASE_URL}/login/oauth2/code/github
                         client-id: ${OAUTH2_CLIENT_ID_GITHUB}
                         client-secret: ${OAUTH2_CLIENT_SECRET_GITHUB}
                         scope: 
                             - user:email
                     azure:
+                        redirect-uri: ${BASE_URL}/login/oauth2/code/azure
                         client-id: ${OAUTH2_CLIENT_ID_AZURE}
                         client-secret: ${OAUTH2_CLIENT_SECRET_AZURE}
                         scope: 
