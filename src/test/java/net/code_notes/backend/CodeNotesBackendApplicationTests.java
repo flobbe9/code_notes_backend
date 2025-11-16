@@ -26,7 +26,6 @@ class CodeNotesBackendApplicationTests {
     static void init() throws IOException {
         log.info("Running tests in CI mode: {}", Utils.isCI());
         
-        // TODO: continue here, version not read
         CodeNotesBackendApplication.readEnvFiles("./.env.version");
 
         log.info("App version {}", System.getProperty("VERSION"));

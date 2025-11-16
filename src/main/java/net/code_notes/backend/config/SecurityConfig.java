@@ -63,7 +63,6 @@ public class SecurityConfig {
 
     @PostConstruct
     void init() {
-
         log.info("Configuring api security...");
     }
 
@@ -135,7 +134,6 @@ public class SecurityConfig {
      * @return the configured {@link CorsConfigurationSource}
      */
     private CorsConfigurationSource corsConfig() {
-
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(this.FRONTEND_BASE_URL));
         configuration.setAllowedMethods(List.of("GET", "POST", "UPDATE", "DELETE", "OPTIONS"));
