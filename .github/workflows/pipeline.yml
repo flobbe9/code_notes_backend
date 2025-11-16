@@ -58,7 +58,7 @@ jobs:
         with:
           # explicitly specify context in order for .dockerignore to be considered
           context: .
-          build-args:
+          build-args: |
             VERSION=${{env.VERSION}}
           push: true
           tags: |
