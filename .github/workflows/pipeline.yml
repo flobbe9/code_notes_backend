@@ -39,6 +39,7 @@ jobs:
       - name: move .env vars to pipeline
         run: |
           echo $(cat .env.version | grep '^VERSION=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^JAVA_RUNTIME_ARGS=.*$') >> $GITHUB_ENV
         shell: bash
 
       - name: Set up QEMU
@@ -59,7 +60,8 @@ jobs:
           # explicitly specify context in order for .dockerignore to be considered
           context: .
           build-args: |
-            VERSION=${{env.VERSION}}
+            VERSION=${{ env.VERSION }}
+            JAVA_RUNTIME_ARGS=${{ env.JAVA_RUNTIME_ARGS }}
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/code_notes_backend:latest
@@ -88,6 +90,7 @@ jobs:
           echo $(cat .env | grep '^PORT=.*$') >> $GITHUB_ENV
           echo $(cat .env | grep '^DB_PORT=.*$') >> $GITHUB_ENV
           echo $(cat .env | grep '^DB_VERSION=.*$') >> $GITHUB_ENV
+          echo $(cat .env | grep '^JAVA_RUNTIME_ARGS=.*$') >> $GITHUB_ENV
         shell: bash
 
       - name: Write env to server .env file, then pull, rerun and clean up
