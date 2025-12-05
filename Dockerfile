@@ -1,10 +1,10 @@
-ARG VERSION=0.0.1-SNAPSHOT
+ARG VERSION='0.0.1-SNAPSHOT'
 
 FROM eclipse-temurin:21-jdk-alpine-3.22 as build
 
 WORKDIR /app
 
-ARG VERSION
+ARG VERSION='0.0.1-SNAPSHOT'
 
 COPY ./src ./src
 COPY ./gradl[e] ./gradle
@@ -33,9 +33,8 @@ FROM eclipse-temurin:21-jdk-alpine-3.22
 
 WORKDIR /app
 
-ARG VERSION
-# uncomment for faster build
-# ENV VERSION='VERSION'
+ARG VERSION='0.0.1-SNAPSHOT'
+ENV VERSION=${VERSION}
 ARG JAVA_RUNTIME_ARGS
 ENV JAVA_RUNTIME_ARGS=${JAVA_RUNTIME_ARGS}
 ENV JAR_FILE_NAME=code_notes_backend-${VERSION}.jar

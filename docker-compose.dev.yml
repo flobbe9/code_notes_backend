@@ -30,8 +30,8 @@ services:
       args:
         JAVA_RUNTIME_ARGS: ${JAVA_RUNTIME_ARGS}
     container_name: backend
-    # ports: 
-    #   - ${PORT}:${PORT}
+    ports: 
+      - ${PORT}:${PORT}
     environment:
       MAIL_HOST: maildev
       DB_HOST: db
@@ -54,6 +54,8 @@ services:
   
   frontend:
     image: dev_code_notes_frontend
+    ports: 
+      - 3001:3001
     volumes:
       - ./.nginx.local/nginx.local.conf:/etc/nginx/conf.d/default.conf
 
@@ -68,9 +70,6 @@ services:
       FRONTEND_HOST: frontend
       SSL_CRT_FILE: /app/.ssl/fullchain.pem
       SSL_KEY_FILE: /app/.ssl/privkey.pem
-    depends_on:
-      - frontend
-      - backend
     healthcheck:
       test: wget --no-verbose --no-check-certificate --tries=1 --spider ${GATEWAY_PROTOCOL}://gateway:${GATEWAY_PORT} || exit 1
       interval: 5s
@@ -81,54 +80,36 @@ services:
       - ./.ssl/localhost.crt.pem:/app/.ssl/fullchain.pem
       - ./.ssl/localhost.key.pem:/app/.ssl/privkey.pem
 
-
-
-
-
-
-
-
-
-
-  # http://localhost:4004
   zabbix-server:
-    image: zabbix/zabbix-server-mysql:latest
+    image: zabbix/zabbix-server-mysql:7.4-ubuntu-latest
     restart: always
     depends_on:
       - db
-      - zabbix-agent
     environment:
       DB_SERVER_HOST: db
       DB_SERVER_PORT: ${DB_PORT}
-      MYSQL_DATABASE: zabbix
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD} 
-      ZBX_STARTREPORTWRITERS: 3 
-      ZBX_LISTENPORT: 4002
+      MYSQL_DATABASE: ${ZABBIX_DB_NAME}
+      MYSQL_USER: ${ZABBIX_DB_USER}
+      MYSQL_PASSWORD: ${ZABBIX_DB_PASSWORD} 
+      ZBX_LISTENPORT: ${ZABBIX_SERVER_PORT}
+      TZ: ${TZ}
     ports:
-      - 4002:4002 
-
-  zabbix-agent: 
-    image: zabbix/zabbix-agent2:7.4-ubuntu-latest
-    environment:
-      ZBX_LISTENPORT: 4003
-      ZBX_SERVER_HOST: zabbix-server
-      ZBX_SERVER_PORT: 4002
+      - ${ZABBIX_SERVER_PORT}:${ZABBIX_SERVER_PORT} 
       
   zabbix-ui: 
-    image: zabbix/zabbix-web-nginx-mysql:7.0.21-ubuntu
+    image: zabbix/zabbix-web-nginx-mysql:7.4-ubuntu-latest
     restart: always
     depends_on:
       - db
       - zabbix-server
     ports:
-      - 4004:8080
+      - ${ZABBIX_UI_PORT}:8080
     environment:
       DB_SERVER_HOST: db
       DB_SERVER_PORT: ${DB_PORT}
-      MYSQL_DATABASE: zabbix
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      PHP_TZ: Europe/Berlin 
-      ZBX_SERVER_PORT: 4002
+      MYSQL_DATABASE: ${ZABBIX_DB_NAME}
+      MYSQL_USER: ${ZABBIX_DB_USER}
+      MYSQL_PASSWORD: ${ZABBIX_DB_PASSWORD}
+      PHP_TZ: ${TZ}
+      ZBX_SERVER_PORT: ${ZABBIX_SERVER_PORT}
       ZBX_SERVER_HOST: zabbix-server
