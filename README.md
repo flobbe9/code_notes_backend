@@ -1,21 +1,19 @@
-# Run
-- `docker-compose -f 'docker-compose.dev.yml up -d --build` 
-
+# Code Notes backend
+Backend service of <a href="https://code-notes.net" target="_blank">https://code-notes.net</a>.
 
 ## Using Oauth2 locally
-- create an .env.local file at the project root (same level as /src)
-- use these keys:
+- create an .env.local file at the project root with:
 ```
-OAUTH2_CLIENT_ID_GOOGLE=
-OAUTH2_CLIENT_SECRET_GOOGLE=
-OAUTH2_ISSUER_URI_GOOGLE=
-OAUTH2_CLIENT_ID_GITHUB=
-OAUTH2_CLIENT_SECRET_GITHUB=
-OAUTH2_AUTHORIZATION_URI_GITHUB=
-OAUTH2_TOKEN_URI_GITHUB=
-OAUTH2_USER_INFO_URI_GITHUB=
-OAUTH2_CLIENT_ID_AZURE=
-OAUTH2_CLIENT_SECRET_AZURE=
-OAUTH2_TENANT_ID_AZURE=
-OAUTH2_ISSUER_URI_AZURE=
+OAUTH2_CLIENT_ID_GOOGLE=<yourValue>
+OAUTH2_CLIENT_SECRET_GOOGLE=<yourValue>
+
+OAUTH2_CLIENT_ID_GITHUB=<yourValue>
+OAUTH2_CLIENT_SECRET_GITHUB=<yourValue>
+
+OAUTH2_CLIENT_ID_AZURE=<yourValue>
+OAUTH2_CLIENT_SECRET_AZURE=<yourValue>
 ```
+
+### Service repositories
+- frontend: <a href="https://github.com/flobbe9/code_notes_frontend" target="_blank">https://github.com/flobbe9/code_notes_frontend</a>
+- gateway: <a href="https://github.com/flobbe9/code_notes_gateway" target="_blank">https://github.com/flobbe9/code_notes_gateway</a>
