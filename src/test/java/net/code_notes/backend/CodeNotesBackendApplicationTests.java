@@ -9,13 +9,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import lombok.extern.log4j.Log4j2;
+import net.code_notes.backend.config.MockOauth2Config;
 import net.code_notes.backend.helpers.Utils;
 
 
 @SpringBootTest
 @Log4j2
+@Import({
+    MockOauth2Config.class
+})
 class CodeNotesBackendApplicationTests {
 
     @Value("${ENV}")
