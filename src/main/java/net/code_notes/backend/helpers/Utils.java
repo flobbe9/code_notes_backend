@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.PatternSyntaxException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -101,7 +102,7 @@ public class Utils {
      * - one number and <p>
      * - one of given special characters.
      */
-    public static final String PASSWORD_REGEX = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,;_!#$%&@€*+=?´`\"'\\{|}\\/()~^-])(.{8,72})$";
+    public static final String PASSWORD_REGEX = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,;_!#$§%&@€*+=?´`\"'\\{|}\\/()~^-])(.{8,72})$";
     public static final String EMAIL_REGEX = "^[\\w\\-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSS";
@@ -217,20 +218,6 @@ public class Utils {
         return str.charAt(0) == '/' ? str : "/" + str;
     }
 
-
-    /**
-     * @param password to validate
-     * @return true matches regex and not null, else false
-     * @see {@link #PASSWORD_REGEX}
-     */
-    public static boolean isPasswordValid(String password) {
-        if (isBlank(password))
-            return false;
-
-        return password.matches(PASSWORD_REGEX);
-    }
-
-
     /**
      * @param email to validate
      * @return true matches regex and not null, else false
@@ -242,6 +229,24 @@ public class Utils {
             return false;
 
         return email.matches(EMAIL_REGEX);
+    }
+
+    /**
+     * @param str
+     * @param regex
+     * @return {@code true} if each character in {@code str} matches {@code regex}
+     * @throws IllegalArgumentException
+     */
+    public static boolean matchEachChar(String str, String regex) throws IllegalArgumentException, PatternSyntaxException {
+        assertArgsNotNullAndNotBlankOrThrow(str, regex);
+
+        for (int i = 0; i < str.length(); i++) {
+            String character = Character.toString(str.charAt(i));
+            if (!character.matches(regex))
+                return false;
+        }
+
+        return true;
     }
 
 
