@@ -462,7 +462,6 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @throws ResponseStatusException 400 if {@code appUser} is invalid
      */
     private boolean validateAndThrowIncludePassword(AppUser appUser) throws IllegalArgumentException, ResponseStatusException {
-
         if (appUser == null)
             throw new IllegalArgumentException("Failed to validate appUser. 'appUser' cannot be null");
 
@@ -483,13 +482,11 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
      * @throws ResponseStatusException 400 if password is invalid
      */
     private boolean validatePasswordAndThrow(String password) throws ResponseStatusException {
-        
         if (isBlank(password) || !password.matches(Utils.PASSWORD_REGEX))
             throw new ResponseStatusException(BAD_REQUEST, "'password' does not match pattern");
 
         return true;
     }
-    
 
     /**
      * @param id of {@code appUser}
@@ -529,7 +526,7 @@ public class AppUserService extends AbstractService<AppUser> implements UserDeta
     public AppUser register(String email, String password) throws ResponseStatusException, IllegalArgumentException, MessagingException, IllegalStateException, IOException {
         assertArgsNotNullAndNotBlankOrThrow(email, password);
 
-        AppUser appUser = save(new AppUser(email, password, AppUserRole.USER));
+        AppUser appUser = saveNew(new AppUser(email, password, AppUserRole.USER));
 
         ConfirmationToken confirmationToken = this.confirmationTokenService.createNew(appUser);
 

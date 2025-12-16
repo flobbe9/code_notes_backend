@@ -94,7 +94,6 @@ services:
 
   zabbix-server:
     image: zabbix/zabbix-server-mysql:7.4-ubuntu-latest
-    restart: always
     depends_on:
       - db
     environment:
@@ -125,7 +124,6 @@ services:
       
   zabbix-ui: 
     image: zabbix/zabbix-web-nginx-mysql:7.4-ubuntu-latest
-    restart: always
     depends_on:
       - db
       - zabbix-server

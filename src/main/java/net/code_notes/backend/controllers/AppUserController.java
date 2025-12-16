@@ -99,7 +99,6 @@ public class AppUserController extends DeletedEntityRecordController {
         this.appUserService.register(email, password);
     }
 
-
     @GetMapping("/resend-confirmation-mail")
     @Operation(
         description = "Resend confirmation mail if appUser with given email exists and is not enabled yet",

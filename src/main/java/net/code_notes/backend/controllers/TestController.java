@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,9 @@ public class TestController {
 
     private String cached;
 
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
+
     
     @GetMapping("/set")
     public void set(@RequestParam("cached") String cached) {
@@ -43,8 +47,9 @@ public class TestController {
     }
 
         
-    @GetMapping("/get")
-    public void get() {
+    @PostMapping("/get")
+    public void get(@RequestParam("test") String test) {
+        System.out.println(test);
         // log.info(this.noteRepository.findByAppUserEmail("florin.schikarski@outlook.com").get(0).getNoteInputs().get(0).getId());
         // log.info(this.noteRepository.findByAppUserEmailAndTags_NameIn("user@user.com", List.of("test")).get(0).getTitle());
         // log.info(this.noteRepository.findByAppUserEmail("florin.schikarski@outlook.com").getLast().getNoteInputs());
