@@ -168,7 +168,6 @@ public class CustomExceptionHandler {
     
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<CustomExceptionFormat> handleException(Exception exception) {
-
         logPackageStackTrace(exception);
 
         return getResponse(INTERNAL_SERVER_ERROR, exception.getMessage());

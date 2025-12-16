@@ -97,5 +97,8 @@ logging:
     level:
         net:
             code_notes: ${LOG_LEVEL}
+        # org:
+        #     springframework:
+        #         security:  ${LOG_LEVEL}
     file:
         path: ${LOG_FILE_PATH}

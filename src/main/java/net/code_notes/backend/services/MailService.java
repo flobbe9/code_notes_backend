@@ -257,7 +257,7 @@ public class MailService {
         props.put("mail.smtp.auth", this.SMTP_AUTH_ENABLE);
         props.put("mail.smtp.starttls.enable", this.MAIL_STARTTLS_ENABLE);
 
-        if (log.isDebugEnabled())
+        if (log.isTraceEnabled())
             props.put("mail.debug", "true");
     }
 }

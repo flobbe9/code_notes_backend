@@ -2,6 +2,8 @@ package net.code_notes.backend;
 
 import org.springframework.context.annotation.Import;
 
+import net.code_notes.backend.config.SecurityConfig;
+
 /**
  * Annotate webMvc tests with {@code @Import({SecurityTestConfig.class})} in order to test security
  * 
@@ -9,7 +11,7 @@ import org.springframework.context.annotation.Import;
  */
 @Import({
     Oauth2TestConfig.class,
-    // SecurityConfig.class // uncomment this when testint security
+    SecurityConfig.class // uncomment this when testint security
 })
 public class SecurityTestConfig {
     
