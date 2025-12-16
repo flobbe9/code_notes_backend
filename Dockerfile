@@ -42,6 +42,7 @@ ENV JAR_FILE_NAME=code_notes_backend-${VERSION}.jar
 COPY --from=build /app/build/libs/${JAR_FILE_NAME} \
      /app/.env \
      /app/.env.version \
+     /app/.env.loca[l] \
      ./
 
 ENTRYPOINT java -jar ${JAR_FILE_NAME} ${JAVA_RUNTIME_ARGS}
