@@ -1,7 +1,5 @@
 server:
     port: ${PORT}
-    error:
-        include-message: always
     servlet:
         session:
             timeout: 86400 # 1 day
