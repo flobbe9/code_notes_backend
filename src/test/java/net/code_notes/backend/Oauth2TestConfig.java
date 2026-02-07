@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 /**
  * For integration tests to work.
  * 
- * @since latest
+ * @since 1.1.0
  */
 @TestConfiguration
 public class Oauth2TestConfig {

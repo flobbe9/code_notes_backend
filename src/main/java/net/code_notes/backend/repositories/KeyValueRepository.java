@@ -9,7 +9,7 @@ import net.code_notes.backend.abstracts.AbstractRepository;
 import net.code_notes.backend.entities.KeyValue;
 
 /**
- * @since latest
+ * @since 1.1.0
  */
 @Repository
 public interface KeyValueRepository extends AbstractRepository<KeyValue> {
