@@ -59,7 +59,8 @@ public class CodeNotesBackendApplication {
         log.info("Registering default admin user");
         this.appUserService.registerDefaultAdminUser();
         
-        this.keyValueService.migrateHtml();
+        if (!Utils.isCI())
+            this.keyValueService.migrateHtml();
     }
 
     /**
