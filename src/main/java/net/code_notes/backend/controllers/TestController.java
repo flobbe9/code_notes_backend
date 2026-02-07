@@ -56,7 +56,6 @@ public class TestController {
         
     @PostMapping("/get")
     public void get() {
-        this.keyValueService.migrateHtml();
     }
 
     @PostMapping(path = "/upload", consumes = "multipart/form-data")
