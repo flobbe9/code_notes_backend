@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.jspecify.annotations.NonNull;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -162,16 +160,7 @@ public class NoteService extends AbstractService<Note> {
             // load value
             NoteInputValueJpaDto firstCodeNoteInputWithVariables = this.noteInputService.loadValueById(firstCodeNoteInputWithVariablesDto.getId());
 
-            // sanitize all html
-            // TODO: remove once migration is done
-            String value = firstCodeNoteInputWithVariables.getValue();
-            PolicyFactory policy = new HtmlPolicyBuilder()
-                .allowElements()
-                .toFactory();
-            if (!isBlank(value))
-                value = policy.sanitize(value);
-
-            ratingPointsCodeInputWithVariables = SearchStringUtils.matchPhrases(searchPhrase, value);
+            ratingPointsCodeInputWithVariables = SearchStringUtils.matchPhrases(searchPhrase, firstCodeNoteInputWithVariables.getValue());
         }
 
         return ratingPointsCodeInputWithVariables;
