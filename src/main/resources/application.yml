@@ -59,7 +59,6 @@ spring:
                         user-info-uri: ${OAUTH2_USER_INFO_URI_AZURE}
                         user-name-attribute: email
                         
-                        
     ### DB
     datasource:
         url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
