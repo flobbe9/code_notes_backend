@@ -118,7 +118,7 @@ public class TagService extends AbstractService<Tag> {
         if (appUser == null)
             return;
 
-        this.tagRepository.deleteByNotesIsNull();
+        this.tagRepository.deleteByNotesIsEmpty();
     }
     
     /**

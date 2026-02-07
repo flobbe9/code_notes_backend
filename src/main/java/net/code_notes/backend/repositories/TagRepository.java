@@ -26,7 +26,7 @@ public interface TagRepository extends AbstractRepository<Tag> {
     List<Tag> findAllByAppUser(AppUser appUser);
 
     @Transactional
-    void deleteByNotesIsNull();
+    void deleteByNotesIsEmpty();
 
     boolean existsByNameAndAppUser(String name, AppUser appUser);
 }
