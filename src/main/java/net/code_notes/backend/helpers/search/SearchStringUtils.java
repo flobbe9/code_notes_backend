@@ -6,10 +6,10 @@ import static net.code_notes.backend.helpers.Utils.isBlank;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.apache.commons.lang3.Strings;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import io.micrometer.common.lang.NonNull;
 import net.code_notes.backend.abstracts.AbstractSearchStringMatchRating;
 
 /**
@@ -115,7 +115,7 @@ public abstract class SearchStringUtils {
 
         else if (isApproximateMatch(searchWord, compareWord)) {
             rating = new ApproximateSearchStringMatchRating();
-            compareWordSubstringStartIndex = StringUtils.indexOfIgnoreCase(compareWord, searchWord);
+            compareWordSubstringStartIndex = Strings.CI.indexOf(compareWord, searchWord);
         }
 
         // case: no match, return neutral instance
@@ -135,7 +135,7 @@ public abstract class SearchStringUtils {
      * @return {@code searchWord.equalsIgnoreCase(compareWord)}
      */
     public static boolean isExactMatch(@Nullable String searchWord, @Nullable String compareWord) {
-        return StringUtils.equalsIgnoreCase(searchWord, compareWord);
+        return Strings.CI.equals(searchWord, compareWord);
     }
 
     /**
@@ -146,7 +146,7 @@ public abstract class SearchStringUtils {
      * @return {@code compareWord.containsIgnoreCase(searchWord)}
      */
     public static boolean isApproximateMatch(@Nullable String searchWord, @Nullable String compareWord) {
-        return StringUtils.containsIgnoreCase(compareWord, searchWord);
+        return Strings.CI.contains(compareWord, searchWord);
     }
 
     /**

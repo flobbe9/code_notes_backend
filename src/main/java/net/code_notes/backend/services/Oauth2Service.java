@@ -144,7 +144,6 @@ public class Oauth2Service {
      */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> fetchGithubEmailsUserInfo() {
-
         String oauth2AccessToken = getCurrentOAuth2AccessToken(Utils.OAUTH2_CLIENT_REGISTRATION_ID_GITHUB);
 
         return RestClient.create()

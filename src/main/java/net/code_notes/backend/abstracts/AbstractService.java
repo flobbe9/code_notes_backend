@@ -70,12 +70,12 @@ abstract public class AbstractService<T extends AbstractEntity> {
      * @throws IllegalArgumentException if {@code entity} is null
      * @throws ResponseStatusException if {@code entity} is invalid
      */
-    protected boolean validateAndThrow(T note) {
+    protected boolean validateAndThrow(T entity) {
         // case: falsy param
-        if (note == null)
+        if (entity == null)
             throw new IllegalArgumentException("Failed to validate entity. 'entity' cannot be null");
 
-        this.validator.validateObject(note)
+        this.validator.validateObject(entity)
                         .failOnError((message) -> new ResponseStatusException(BAD_REQUEST, "'entity' invalid"));
 
         return true;

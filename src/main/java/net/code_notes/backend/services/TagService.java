@@ -108,14 +108,12 @@ public class TagService extends AbstractService<Tag> {
         return this.tagRepository.findAllByAppUser(appUser);
     }
 
-
     /**
      * Remove all tags of given appUser that don't have any notes (which means that the tag is useless).
      * 
      * @param appUser to check the tags for
      */
     public void removeOrphanTags(@Nullable AppUser appUser) {
-
         // case: falsy param
         if (appUser == null)
             return;
@@ -123,14 +121,12 @@ public class TagService extends AbstractService<Tag> {
         this.tagRepository.deleteByNotesIsNull();
     }
     
-
     /**
      * Overload. Use the tags of the currently logged in app user
      * @throws ResponseStatusException 401 if not logged in
      * @throws IllegalStateException if the logged in principal is not of a handled type
      */
     public void removeOrphanTags() throws ResponseStatusException, IllegalStateException {
-
         removeOrphanTags(this.appUserService.getCurrent());
     }
 

@@ -57,23 +57,18 @@ public abstract class AbstractEntity {
         return this;
     }
 
-
     @PrePersist
     public void persist() {
-
         if (this.created == null)
             this.created = LocalDateTime.now();
 
         this.updated = LocalDateTime.now();
     }
 
-
     @PreUpdate
     public void update() {
-
         this.updated = LocalDateTime.now();
     }
-
 
     @Override 
     public boolean equals(Object other) {
