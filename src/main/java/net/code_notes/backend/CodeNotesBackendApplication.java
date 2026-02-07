@@ -16,6 +16,7 @@ import jakarta.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.helpers.Utils;
 import net.code_notes.backend.services.AppUserService;
+import net.code_notes.backend.services.KeyValueService;
 
  
 @SpringBootApplication
@@ -26,6 +27,9 @@ public class CodeNotesBackendApplication {
 
     @Autowired
     private AppUserService appUserService;
+
+    @Autowired
+    private KeyValueService keyValueService;
 
 
     /**
@@ -54,6 +58,9 @@ public class CodeNotesBackendApplication {
 
         log.info("Registering default admin user");
         this.appUserService.registerDefaultAdminUser();
+                
+        if (!Utils.isCI())
+            this.keyValueService.migrateHtml();
     }
 
     /**
