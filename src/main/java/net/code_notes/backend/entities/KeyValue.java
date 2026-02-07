@@ -17,7 +17,7 @@ import net.code_notes.backend.abstracts.AbstractEntity;
  * 
  * Use {@code _key} for equals and hashcode
  * 
- * @since latest
+ * @since 1.1.0
  */
 @Entity
 @Getter
