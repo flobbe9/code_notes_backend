@@ -18,8 +18,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.log4j.Log4j2;
 import net.code_notes.backend.repositories.NoteRepository;
 import net.code_notes.backend.services.AppUserService;
-
-// import org.apache.log4j.Layout;
+import net.code_notes.backend.services.KeyValueService;
+import net.code_notes.backend.services.Oauth2Service;
 
 
 @RestController
@@ -39,6 +39,13 @@ public class TestController {
     @Autowired
     private ClientRegistrationRepository clientRegistrationRepository;
 
+    @Autowired
+    private Oauth2Service oauth2Service;
+
+    @Autowired
+    private KeyValueService keyValueService;
+
+
     
     @GetMapping("/set")
     public void set(@RequestParam("cached") String cached) {
@@ -48,11 +55,8 @@ public class TestController {
 
         
     @PostMapping("/get")
-    public void get(@RequestParam("test") String test) {
-        System.out.println(test);
-        // log.info(this.noteRepository.findByAppUserEmail("florin.schikarski@outlook.com").get(0).getNoteInputs().get(0).getId());
-        // log.info(this.noteRepository.findByAppUserEmailAndTags_NameIn("user@user.com", List.of("test")).get(0).getTitle());
-        // log.info(this.noteRepository.findByAppUserEmail("florin.schikarski@outlook.com").getLast().getNoteInputs());
+    public void get() {
+        this.keyValueService.migrateHtml();
     }
 
     @PostMapping(path = "/upload", consumes = "multipart/form-data")

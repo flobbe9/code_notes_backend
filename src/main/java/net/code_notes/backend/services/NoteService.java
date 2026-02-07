@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.NonNull;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -163,6 +163,7 @@ public class NoteService extends AbstractService<Note> {
             NoteInputValueJpaDto firstCodeNoteInputWithVariables = this.noteInputService.loadValueById(firstCodeNoteInputWithVariablesDto.getId());
 
             // sanitize all html
+            // TODO: remove once migration is done
             String value = firstCodeNoteInputWithVariables.getValue();
             PolicyFactory policy = new HtmlPolicyBuilder()
                 .allowElements()

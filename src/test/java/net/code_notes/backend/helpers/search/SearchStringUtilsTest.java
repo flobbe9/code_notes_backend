@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -130,7 +130,7 @@ public class SearchStringUtilsTest {
 
         // same case
         assertTrue(searchWord.length() >= SEARCH_WORD_MIN_LENGTH_FOR_CONTAINS);
-        assertTrue(StringUtils.containsIgnoreCase(compareWord, searchWord));
+        assertTrue(Strings.CI.contains(compareWord, searchWord));
         assertTrue(SearchStringUtils.isApproximateMatch(searchWord, compareWord));
 
         // different case
@@ -293,10 +293,10 @@ public class SearchStringUtilsTest {
     void matchWords_assertApproximateMatchRatingPoints() {
         String searchWord = "input";
         String compareWord = "searchInput";
-        int compareWordSubstringStartIndex = StringUtils.indexOfIgnoreCase(compareWord, searchWord);
+        int compareWordSubstringStartIndex = Strings.CI.indexOf(compareWord, searchWord);
 
         // contains
-        assertTrue(StringUtils.containsIgnoreCase(compareWord, searchWord));
+        assertTrue(Strings.CI.contains(compareWord, searchWord));
         assertTrue(SearchStringUtils.isApproximateMatch(searchWord, compareWord));
         SearchStringMatch searchStringMatch = SearchStringUtils.matchWords(searchWord, compareWord);
         assertInstanceOf(ApproximateSearchStringMatchRating.class, searchStringMatch.getRating());
