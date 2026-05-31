@@ -24,9 +24,6 @@ services:
       web:
     
   backend:
-    depends_on: 
-      db: 
-        condition: service_healthy
     image: dev_${API_NAME}
     build:
       context: .

@@ -14,3 +14,4 @@ notes.md
 test.*
 data.sql
 volumes
+*override.yml
